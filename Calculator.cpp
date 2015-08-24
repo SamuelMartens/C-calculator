@@ -5,48 +5,47 @@
 using namespace std;
 
 // ivan: it would be better to move all function declarations to separated header file
-void remove_whitesp(char *p);
-int get_tokens(char *p, int *operands_p, char *operations_p, int *count_digits_p, int *count_symbols_p);
-int char_to_int(char *p, int start_num, int end_num);
-int get_result(char *operations_p, int *operands_p, int *count_digits_p);
-int do_operation(int operand_l, int operand_r, char operation);
-bool in_array(char symbol,char *container_p);
+void removeWhitesp(char *p);
+int getTokens(char *p, int *pOperands, char *pOperations, int *pCountDigits, int *pCountSymbols);
+int charToInt(char *p, int iStartNum, int iEndNum);
+int getResult(char *pOperations, int *pOperands, int *pCountDigits);
+int doOperation(int iOperandL, int iOperandR, char cOperation);
+bool isInArray(char cSymbol,char *pContainer);
 
 int main()
 {
-	const int sz_raw_string = 80 , sz_global_size = 20;
-	char raw_string[sz_raw_string], operations[sz_global_size];
-	char *operations_p= operations;
-	int operands[sz_global_size];
-	int result, count_digits=0, count_symbols=0;
-	int error = 0;
+	const int szRawString = 80 , szGlobalSize = 20;
+	char cRawString[szRawString], operations[szGlobalSize];
+	int operands[szGlobalSize];
+	int iResult, iCountDigits=0, iCountSymbols=0;
+	int iError = 0;
 
 	cout << "Print your equation: ";
-	gets_s(raw_string, sz_raw_string);
+	gets_s(cRawString, szRawString);
 
-	remove_whitesp(raw_string);
-	error = get_tokens(raw_string, operands, operations, &count_digits, &count_symbols);
-	if (error != 0) {
+	removeWhitesp(cRawString);
+	iError = getTokens(cRawString, operands, operations, &iCountDigits, &iCountSymbols);
+	if (iError != 0) {
 		cout << "Error in your equation";
 		return 1;
 	}
-	result = get_result(operations, operands, &count_digits);
-	cout << "Result " << result << "\n";
+	iResult = getResult(operations, operands, &iCountDigits);
+	cout << "Result " << iResult << "\n";
 
 	return 0;
 }
 
 
-void remove_whitesp(char *p)
+void removeWhitesp(char *p)
 {	
-	char next;
-	bool wt_left = true;
+	char cNext;
+	bool bWtLeft = true;
 	 
-	while (wt_left){
-		wt_left = false;
+	while (bWtLeft){
+		bWtLeft = false;
 		for (int i = 0; *(p + i); i++) {
 			if (*(p + i) == ' ') {
-				wt_left = true;
+				bWtLeft = true;
 				for (int k = i; *(p + k); k++) {
 					*(p + k) = *(p + k + 1);
 				}
@@ -56,105 +55,96 @@ void remove_whitesp(char *p)
 }
 
 
-int get_tokens(char *p, int *operands_p, char *operations_p, int *count_digits_p, int *count_symbols_p )
+int getTokens(char *p, int *pOperands, char *pOperations, int *pCountDigits, int *pCountSymbols )
 {
-	int start_num = -1, end_num = 0, operands_pos = 0, operations_pos = 0;
-	char symbols[] = "+-", digits[] = "0123456789";
+	int iStartNum = -1, iEndNum = 0, iOperandsPos = 0, iOperationsPos = 0;
+	char cSymbols[] = "+-", cDigits[] = "0123456789";
 
 	for (int i = 0; *(p + i); i++) {
 		
-		if (in_array(*(p + i), digits)) {
+		if (isInArray(*(p + i), cDigits)) {
 
-			if (start_num == -1) start_num = i;
-			else end_num = i;
+			if (iStartNum == -1) iStartNum = i;
+			else iEndNum = i;
 
-			if (in_array(*(p + i + 1), symbols) || !(*(p + i + 1))) {
-				if (end_num < start_num) end_num = start_num;
-				*(operands_p + operands_pos) = char_to_int(p, start_num, end_num);
-				(*count_digits_p)++;
+			if (isInArray(*(p + i + 1), cSymbols) || !(*(p + i + 1))) {
+				if (iEndNum < iStartNum) iEndNum = iStartNum;
+				*(pOperands + iOperandsPos) = charToInt(p, iStartNum, iEndNum);
+				(*pCountDigits)++;
 			} 
 
 		}
-		else if (in_array(*(p + i), symbols)) {
+		else if (isInArray(*(p + i), cSymbols)) {
 
-			if (start_num != -1) { 
-				start_num = -1;
-				operands_pos++;
+			if (iStartNum != -1) { 
+				iStartNum = -1;
+				iOperandsPos++;
 			}
-			*(operations_p + operations_pos) = *(p + i);
-			operations_pos++;
-			(*count_symbols_p)++;
+			*(pOperations + iOperationsPos) = *(p + i);
+			iOperationsPos++;
+			(*pCountSymbols)++;
 		}
 		else {
 			return 1;
 		}
 	}
 
-	if (*count_digits_p - *count_symbols_p != 1 || *count_digits_p < 2) return 1;
+	if (*pCountDigits - *pCountSymbols != 1 || *pCountDigits < 2) return 1;
 
 	return 0;
 }
 
 
-bool in_array(char symbol, char *container_p) 
+bool isInArray(char cSymbol, char *pContainer) 
 {
-	for (int i = 0; *(container_p + i); i++) {
-		if (symbol == *(container_p + i)) return true;
+	for (int i = 0; *(pContainer + i); i++) {
+		if (cSymbol == *(pContainer + i)) return true;
 	}
 
 	return false;
 }
 
 
-int char_to_int(char *p, int start_num, int end_num) 
+int charToInt(char *p, int iStartNum, int iEndNum) 
 {
-	/* 
-	ten_num - кол-во разрядов 10
-	cur_num - число над которым мы работаем в данный момент
-	*/
 	
-	int int_num, cur_num;
-	int ten_num = 1, final_num = 0;
+	int iCurNum;
+	int iTenNum = 1, iFinalNum = 0;
 
-	//cout << "DDD\n";
-	for (int i = start_num; i <= end_num; i++ ) {
-	//	cout << "char cur_num" << *(p + i) << "\n";
-		cur_num = (int) *(p + i);
-		cur_num = cur_num - 48;
-	//	cout << "int  cur_num" << cur_num << "\n";
-		//if (cur_num !=0 ) final_num = final_num + cur_num * ten_num;
-		//ten_num = 10 * ten_num;
-		final_num = final_num * 10 + cur_num;
+	for (int i = iStartNum; i <= iEndNum; i++ ) {
+		iCurNum = (int) *(p + i);
+		iCurNum = iCurNum - 48;
+		iFinalNum = iFinalNum * 10 + iCurNum;
 	}
 
-	return final_num;
+	return iFinalNum;
 }
 
 
-int get_result(char *operations_p, int *operands_p, int *count_digits_p) 
+int getResult(char *pOperations, int *pOperands, int *pCountDigits) 
 {
 	int k=1;
-    int result;
+    int iResult;
 
-	result = do_operation(*(operands_p), *(operands_p + 1), *operations_p);
+	iResult = doOperation(*(pOperands), *(pOperands + 1), *pOperations);
 
-	for (int i = 2; i < *count_digits_p; i++) {
-		result = do_operation(result, *(operands_p + i), *(operations_p + k));
+	for (int i = 2; i < *pCountDigits; i++) {
+		iResult = doOperation(iResult, *(pOperands + i), *(pOperations + k));
 		k++;
 	}
 
-	return result;
+	return iResult;
 }
 
 
-int do_operation(int operand_l, int operand_r, char operation)
+int doOperation(int iOperandL, int iOperandR, char cOperation)
 {
-	switch (operation)
+	switch (cOperation)
 	{
 	case '+':
-		return operand_l + operand_r;
+		return iOperandL + iOperandR;
 	case '-':
-		return operand_l - operand_r;
+		return iOperandL - iOperandR;
 	}
 
 	return 0;
