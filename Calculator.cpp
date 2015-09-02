@@ -6,17 +6,19 @@ using namespace std;
 
 // ivan: it would be better to move all function declarations to separated header file
 void removeWhitesp(char *p);
-int getTokens(char *p, int *pOperands, char *pOperations, int *pCountDigits, int *pCountSymbols);
+int getTokens(char *p, float *pOperands, char *pOperations, int *pCountDigits, int *pCountSymbols);
 int charToInt(char *p, int iStartNum, int iEndNum);
-int getResult(char *pOperations, int *pOperands, int *pCountDigits);
-int doOperation(int iOperandL, int iOperandR, char cOperation);
+float getResult(char *pOperations, float *pOperands, int *pCountDigits);
+float doOperation(float iOperandL, float iOperandR, char cOperation);
 bool isInArray(char cSymbol,char *pContainer);
+bool isFloat(char *p, int iStartNum, int iEndNum);
+float charToFloat(char *p, int iStartNum, int iEndNum);
 
 int main()
 {
 	const int szRawString = 80 , szGlobalSize = 20;
 	char cRawString[szRawString], operations[szGlobalSize];
-	int operands[szGlobalSize];
+	float operands[szGlobalSize];
 	int iResult, iCountDigits=0, iCountSymbols=0;
 	int iError = 0;
 
@@ -55,10 +57,10 @@ void removeWhitesp(char *p)
 }
 
 
-int getTokens(char *p, int *pOperands, char *pOperations, int *pCountDigits, int *pCountSymbols )
+int getTokens(char *p, float *pOperands, char *pOperations, int *pCountDigits, int *pCountSymbols )
 {
 	int iStartNum = -1, iEndNum = 0, iOperandsPos = 0, iOperationsPos = 0;
-	char cSymbols[] = "+-", cDigits[] = "0123456789";
+	char cSymbols[] = "+-*/", cDigits[] = "0123456789", cSpecialSymbols[] = ".()";
 
 	for (int i = 0; *(p + i); i++) {
 		
@@ -69,7 +71,7 @@ int getTokens(char *p, int *pOperands, char *pOperations, int *pCountDigits, int
 
 			if (isInArray(*(p + i + 1), cSymbols) || !(*(p + i + 1))) {
 				if (iEndNum < iStartNum) iEndNum = iStartNum;
-				*(pOperands + iOperandsPos) = charToInt(p, iStartNum, iEndNum);
+				*(pOperands + iOperandsPos) = charToFloat(p, iStartNum, iEndNum);
 				(*pCountDigits)++;
 			} 
 
@@ -83,6 +85,9 @@ int getTokens(char *p, int *pOperands, char *pOperations, int *pCountDigits, int
 			*(pOperations + iOperationsPos) = *(p + i);
 			iOperationsPos++;
 			(*pCountSymbols)++;
+		}
+		else if (isInArray(*(p + i), cSpecialSymbols)) {
+			continue;
 		}
 		else {
 			return 1;
@@ -109,7 +114,7 @@ int charToInt(char *p, int iStartNum, int iEndNum)
 {
 	
 	int iCurNum;
-	int iTenNum = 1, iFinalNum = 0;
+	int iFinalNum = 0;
 
 	for (int i = iStartNum; i <= iEndNum; i++ ) {
 		iCurNum = (int) *(p + i);
@@ -121,10 +126,45 @@ int charToInt(char *p, int iStartNum, int iEndNum)
 }
 
 
-int getResult(char *pOperations, int *pOperands, int *pCountDigits) 
+float charToFloat(char *p, int iStartNum, int iEndNum)
+{
+	int iCurNum, iTensNum = 1;
+	float fFinalNum = 0;
+	bool bAfterPoint = false;
+
+	for (int i = iStartNum; i <= iEndNum; i++) {
+		if (*(p + i) == '.') {
+			bAfterPoint = true;
+			continue;
+		}
+		iCurNum = (int)*(p + i);
+		iCurNum = iCurNum - 48;
+		switch (bAfterPoint)
+		{
+		case false:
+			fFinalNum = fFinalNum * 10 + iCurNum;
+			break;
+		case true:
+			fFinalNum = fFinalNum + iCurNum / (10 * iTensNum);
+			iTensNum++;
+			cout << "Cur Num " << iCurNum << "\n";
+			cout << "Final Num " << fFinalNum << "\n";
+			cout << "TensNum " << iTensNum << "\n";
+			cout << "\n \n";
+			break;
+		}
+
+	}
+	
+	cout << "charToFloat " << fFinalNum << "\n";
+	return fFinalNum;
+}
+
+
+float getResult(char *pOperations, float *pOperands, int *pCountDigits) 
 {
 	int k=1;
-    int iResult;
+    float iResult;
 
 	iResult = doOperation(*(pOperands), *(pOperands + 1), *pOperations);
 
@@ -137,7 +177,7 @@ int getResult(char *pOperations, int *pOperands, int *pCountDigits)
 }
 
 
-int doOperation(int iOperandL, int iOperandR, char cOperation)
+float doOperation(float iOperandL, float iOperandR, char cOperation)
 {
 	switch (cOperation)
 	{
@@ -149,3 +189,13 @@ int doOperation(int iOperandL, int iOperandR, char cOperation)
 
 	return 0;
 }
+
+bool isFloat(char *p, int iStartNum, int iEndNum) 
+{
+	for (int i = iStartNum; i <= iEndNum; i++) {
+		if (*(p + i) == '.') return true;
+	}
+
+	return false;
+}
+
