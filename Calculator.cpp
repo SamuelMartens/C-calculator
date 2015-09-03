@@ -18,8 +18,8 @@ int main()
 {
 	const int szRawString = 80 , szGlobalSize = 20;
 	char cRawString[szRawString], operations[szGlobalSize];
-	float operands[szGlobalSize];
-	int iResult, iCountDigits=0, iCountSymbols=0;
+	float operands[szGlobalSize], iResult;
+	int iCountDigits=0, iCountSymbols=0;
 	int iError = 0;
 
 	cout << "Print your equation: ";
@@ -31,6 +31,7 @@ int main()
 		cout << "Error in your equation";
 		return 1;
 	}
+	// Turn tprefix "f"
 	iResult = getResult(operations, operands, &iCountDigits);
 	cout << "Result " << iResult << "\n";
 
@@ -117,8 +118,9 @@ int charToInt(char *p, int iStartNum, int iEndNum)
 	int iFinalNum = 0;
 
 	for (int i = iStartNum; i <= iEndNum; i++ ) {
-		iCurNum = (int) *(p + i);
+		iCurNum = (float) *(p + i);
 		iCurNum = iCurNum - 48;
+		cout << "Icur " << iCurNum << "\n";
 		iFinalNum = iFinalNum * 10 + iCurNum;
 	}
 
@@ -128,8 +130,8 @@ int charToInt(char *p, int iStartNum, int iEndNum)
 
 float charToFloat(char *p, int iStartNum, int iEndNum)
 {
-	int iCurNum, iTensNum = 1;
-	float fFinalNum = 0;
+	int iTensNum = 1;
+	float fCurNum, fFinalNum = 0;
 	bool bAfterPoint = false;
 
 	for (int i = iStartNum; i <= iEndNum; i++) {
@@ -137,17 +139,17 @@ float charToFloat(char *p, int iStartNum, int iEndNum)
 			bAfterPoint = true;
 			continue;
 		}
-		iCurNum = (int)*(p + i);
-		iCurNum = iCurNum - 48;
+		fCurNum = (float)*(p + i);
+		fCurNum = fCurNum - 48;
 		switch (bAfterPoint)
 		{
 		case false:
-			fFinalNum = fFinalNum * 10 + iCurNum;
+			fFinalNum = fFinalNum * 10 + fCurNum;
 			break;
 		case true:
-			fFinalNum = fFinalNum + iCurNum / (10 * iTensNum);
+			fFinalNum = fFinalNum + fCurNum / (10 * iTensNum);
 			iTensNum++;
-			cout << "Cur Num " << iCurNum << "\n";
+			cout << "Cur Num " << fCurNum << "\n";
 			cout << "Final Num " << fFinalNum << "\n";
 			cout << "TensNum " << iTensNum << "\n";
 			cout << "\n \n";
@@ -171,6 +173,7 @@ float getResult(char *pOperations, float *pOperands, int *pCountDigits)
 	for (int i = 2; i < *pCountDigits; i++) {
 		iResult = doOperation(iResult, *(pOperands + i), *(pOperations + k));
 		k++;
+		cout << "Result1 " << iResult << "\n";
 	}
 
 	return iResult;
@@ -179,6 +182,8 @@ float getResult(char *pOperations, float *pOperands, int *pCountDigits)
 
 float doOperation(float iOperandL, float iOperandR, char cOperation)
 {
+	//Change on "f" prefix 
+	cout << "L " << iOperandL << " " << iOperandR << "\n";
 	switch (cOperation)
 	{
 	case '+':
