@@ -4,36 +4,43 @@
 #include <cstdio>
 using namespace std;
 
+struct opr {
+	char symbol;
+	int left_op;
+	int right_op;
+};
+
 // ivan: it would be better to move all function declarations to separated header file
 void removeWhitesp(char *p);
-int getTokens(char *p, float *pOperands, char *pOperations, int *pCountDigits, int *pCountSymbols);
-int charToInt(char *p, int iStartNum, int iEndNum);
-float getResult(char *pOperations, float *pOperands, int *pCountDigits);
-float doOperation(float iOperandL, float iOperandR, char cOperation);
+int getTokens(char *p, float *pOperands, opr *pOperations, int *pCountDigits, int *pCountSymbols);
+float getResult_old(opr *pOperations, float *pOperands, int *pCountDigits);
+float getResult(opr *pOperations, float *pOperands, int *pCountDigits);
+float doOperation(float fOperandL, float fOperandR, opr cOperation);
 bool isInArray(char cSymbol,char *pContainer);
-bool isFloat(char *p, int iStartNum, int iEndNum);
 float charToFloat(char *p, int iStartNum, int iEndNum);
+
 
 int main()
 {
 	const int szRawString = 80 , szGlobalSize = 20;
-	char cRawString[szRawString], operations[szGlobalSize];
-	float operands[szGlobalSize], iResult;
+	char cRawString[szRawString];
+	float fOperands[szGlobalSize], fResult;
 	int iCountDigits=0, iCountSymbols=0;
 	int iError = 0;
+	opr opOperations[szGlobalSize];
 
 	cout << "Print your equation: ";
 	gets_s(cRawString, szRawString);
 
 	removeWhitesp(cRawString);
-	iError = getTokens(cRawString, operands, operations, &iCountDigits, &iCountSymbols);
+	iError = getTokens(cRawString, fOperands, opOperations, &iCountDigits, &iCountSymbols);
 	if (iError != 0) {
 		cout << "Error in your equation";
 		return 1;
 	}
 	// Turn tprefix "f"
-	iResult = getResult(operations, operands, &iCountDigits);
-	cout << "Result " << iResult << "\n";
+	fResult = getResult(opOperations, fOperands, &iCountDigits);
+	cout << "Result " << fResult << "\n";
 
 	return 0;
 }
@@ -61,7 +68,7 @@ void removeWhitesp(char *p)
 int getTokens(char *p, float *pOperands, char *pOperations, int *pCountDigits, int *pCountSymbols )
 {
 	int iStartNum = -1, iEndNum = 0, iOperandsPos = 0, iOperationsPos = 0;
-	char cSymbols[] = "+-*/", cDigits[] = "0123456789", cSpecialSymbols[] = ".()";
+	const char cSymbols[] = "*/+-", cDigits[] = "0123456789", cSpecialSymbols[] = ".()";
 
 	for (int i = 0; *(p + i); i++) {
 		
@@ -83,7 +90,9 @@ int getTokens(char *p, float *pOperands, char *pOperations, int *pCountDigits, i
 				iStartNum = -1;
 				iOperandsPos++;
 			}
-			*(pOperations + iOperationsPos) = *(p + i);
+			*(pOperations + iOperationsPos).symbol = *(p + i);
+			*(pOperations + iOperationsPos).left_op = i - 1;
+			*(pOperations + iOperationsPos).right_op = i + 1;
 			iOperationsPos++;
 			(*pCountSymbols)++;
 		}
@@ -111,23 +120,6 @@ bool isInArray(char cSymbol, char *pContainer)
 }
 
 
-int charToInt(char *p, int iStartNum, int iEndNum) 
-{
-	
-	int iCurNum;
-	int iFinalNum = 0;
-
-	for (int i = iStartNum; i <= iEndNum; i++ ) {
-		iCurNum = (float) *(p + i);
-		iCurNum = iCurNum - 48;
-		cout << "Icur " << iCurNum << "\n";
-		iFinalNum = iFinalNum * 10 + iCurNum;
-	}
-
-	return iFinalNum;
-}
-
-
 float charToFloat(char *p, int iStartNum, int iEndNum)
 {
 	int iTensNum = 1;
@@ -149,10 +141,6 @@ float charToFloat(char *p, int iStartNum, int iEndNum)
 		case true:
 			fFinalNum = fFinalNum + fCurNum / (10 * iTensNum);
 			iTensNum++;
-			cout << "Cur Num " << fCurNum << "\n";
-			cout << "Final Num " << fFinalNum << "\n";
-			cout << "TensNum " << iTensNum << "\n";
-			cout << "\n \n";
 			break;
 		}
 
@@ -163,8 +151,9 @@ float charToFloat(char *p, int iStartNum, int iEndNum)
 }
 
 
-float getResult(char *pOperations, float *pOperands, int *pCountDigits) 
+float getResult_old(char *pOperations, float *pOperands, int *pCountDigits) 
 {
+	
 	int k=1;
     float iResult;
 
@@ -179,28 +168,29 @@ float getResult(char *pOperations, float *pOperands, int *pCountDigits)
 	return iResult;
 }
 
-
-float doOperation(float iOperandL, float iOperandR, char cOperation)
+float getResult(opr *pOperations, float *pOperands, int *pCountDigits)
 {
-	//Change on "f" prefix 
-	cout << "L " << iOperandL << " " << iOperandR << "\n";
+	const char cOperationSymb[] = "*/+-";
+	float fResult;
+
+	for (int i = 0; i < *pCountDigits, i++) {
+		if (isInArray(*(pOperations + i).symbol, ))
+		
+	}
+	
+	return fResult;
+}
+
+
+float doOperation(float fOperandL, float fOperandR, opr cOperation)
+{
 	switch (cOperation)
 	{
 	case '+':
-		return iOperandL + iOperandR;
+		return fOperandL + fOperandR;
 	case '-':
-		return iOperandL - iOperandR;
+		return fOperandL - fOperandR;
 	}
 
 	return 0;
 }
-
-bool isFloat(char *p, int iStartNum, int iEndNum) 
-{
-	for (int i = iStartNum; i <= iEndNum; i++) {
-		if (*(p + i) == '.') return true;
-	}
-
-	return false;
-}
-
