@@ -10,18 +10,12 @@ struct opr {
 	int right_op;
 };
 
-//Implement news class of operands
-struct oprnd {
-    int operand;
-    char processed = 0;
-};
 
 // ivan: it would be better to move all function declarations to separated header file
 void removeWhitesp(char *p);
 void getStringPart(char *pFullString, char *pPartString, int &iStart, int &iEnd);
-void doOperationGroup(opr *pOperations, float *pOperands, char *pOperationGroup, int *pOperationGroupLim, int *pCountDigits);
+void doOperationGroup(opr *pOperations, float *pOperands, char *pOperationGroup, int *pOperationGroupLim, int *pCountDigits, int &iProcDigits);
 int getTokens(char *p, float *pOperands, opr *pOperations, int *pCountDigits, int *pCountSymbols);
-float getResult_old(opr *pOperations, float *pOperands, int *pCountDigits);
 float getResult(opr *pOperations, float *pOperands, int *pCountDigits);
 float doOperation(float fOperandL, float fOperandR, char cOperation);
 float charToFloat(char *p, int iStartNum, int iEndNum);
@@ -161,34 +155,19 @@ float charToFloat(char *p, int iStartNum, int iEndNum)
 }
 
 
-float getResult_old(char *pOperations, float *pOperands, int *pCountDigits) 
-{
-	
-	int k=1;
-    float iResult;
-
-	iResult = doOperation(*(pOperands), *(pOperands + 1), *pOperations);
-
-	for (int i = 2; i < *pCountDigits; i++) {
-		iResult = doOperation(iResult, *(pOperands + i), *(pOperations + k));
-		k++;
-		cout << "Result1 " << iResult << "\n";
-	}
-
-	return iResult;
-}
-
 float getResult(opr *pOperations, float *pOperands, int *pCountDigits)
 {
 	const int iOperSz = 5, cPriority1Sz[] = {0, 2}, cPriority2Sz[] = {2, 4};
     const char cOperationSymb[iOperSz] = "*/+-";
+	int iProcDigits = 0;
     char cPartString[iOperSz];
 	float fResult;
 
     // Do multiple and division
-    doOperationGroup(pOperations, pOperands, cOperationSymb, &cPriority1Sz, pCountDigits);
-
-	
+    doOperationGroup(pOperations, pOperands, cOperationSymb, &cPriority1Sz, pCountDigits, iProcDigits);
+    if (iProcDigits == *(pCountDigits) -1) return fResult;
+    // Do plus and minus
+    doOperationGroup(pOperations, pOperands, cOperationSymb, &cPriority2Sz, pCountDigits, iProcDigits);
 	return fResult;
 }
 
@@ -218,7 +197,7 @@ void getStringPart(char *pFullString, char *pPartString , int &iStart, int &iEnd
     if (*(pFullString + k + 1)) *(pFullString  + k + 1) = '\0';
 }
 
-void doOperationGroup(opr *pOperations, float *pOperands, char *pOperationGroup, int *pOperationGroupLim, int *pCountDigits)
+void doOperationGroup(opr *pOperations, float *pOperands, char *pOperationGroup, int *pOperationGroupLim, int *pCountDigits, int &iProcDigits)
 {
     char cCurOperation = '\0';
 
@@ -230,6 +209,7 @@ void doOperationGroup(opr *pOperations, float *pOperands, char *pOperationGroup,
                 *(pOperands + *(pOperations + k)->left_op) = doOperation(*(pOperands + *(pOperations +k)->left_op),
                                                                          *(pOperands + *(pOperations + k) ->right_op),cCurOperation);
                 if (*(pOperations + k + 1)) *(pOperations + k +1)->right_op = *(pOperations + k) ->right_op;
+                iProcDigits+=1;
             }
         }
     }
