@@ -95,8 +95,9 @@ int getTokens(char *p, float *pOperands, opr *pOperations, int *pCountDigits, in
 				iOperandsPos++;
 			}
 			(pOperations + iOperationsPos)->symbol = *(p + i);
-			(pOperations + iOperationsPos)->left_op = i - 1;
-			(pOperations + iOperationsPos)->right_op = i + 1;
+			(pOperations + iOperationsPos)->left_op = iOperationsPos;
+			(pOperations + iOperationsPos)->right_op = iOperationsPos + 1;
+			cout << "OP " << (pOperations + iOperationsPos)->symbol << " " << (pOperations + iOperationsPos)->left_op << " " << (pOperations + iOperationsPos)->right_op << "\n";
 			iOperationsPos++;
 			(*pCountSymbols)++;
 		}
@@ -104,6 +105,7 @@ int getTokens(char *p, float *pOperands, opr *pOperations, int *pCountDigits, in
 			continue;
 		}
 		else {
+			cout << "Error " << *(p + i) << "\n";
 			return 1;
 		}
 	}
@@ -173,7 +175,11 @@ float getResult(opr *pOperations, float *pOperands, int *pCountDigits)
 
     // Do multiple and division
     doOperationGroup(pOperations, pOperands, cOperationSymb, cPriority1Sz, pCountDigits, iProcDigits);
-    if (iProcDigits == *(pCountDigits) -1) return *(pOperands);
+	cout <<"First re " << *pOperands << "\n";
+    if (iProcDigits == *pCountDigits - 1) return *(pOperands);
+	cout << "Digits " << *pCountDigits << "\n";
+	cout << "Proc " << iProcDigits << "\n";
+	cout << "is done? " << *pOperands << "\n";
     // Do plus and minus
     doOperationGroup(pOperations, pOperands, cOperationSymb, cPriority2Sz, pCountDigits, iProcDigits);
 	return *(pOperands);
@@ -202,16 +208,21 @@ void doOperationGroup(opr *pOperations, float *pOperands, char *pOperationGroup,
 {
     char cCurOperation = '\0';
 	// pCountDigits - переписать на ссылку
-    for (int i= 0; i < *(pCountDigits)-1; i++){
+    for (int i= 0; i < *pCountDigits-1; i++){
         for (int k = *(pOperationGroupLim); k < *(pOperationGroupLim + 1); k++) {
 			cCurOperation = isInArray((pOperations + i)->symbol, pOperationGroup, *(pOperationGroupLim), *(pOperationGroupLim + 1));
+			cout << "Cur op " << cCurOperation << "\n";
+			cout << "Cur op1  " << (pOperations + i)->symbol << "\n";
             if (cCurOperation) {
                 *(pOperands + (pOperations + k)->left_op) = doOperation(*(pOperands + (pOperations +k)->left_op),
                                                                          *(pOperands + (pOperations + k) ->right_op),cCurOperation);
-             //   if (*(pOperations + k + 1)) (pOperations + k +1)->right_op = (pOperations + k) ->right_op;
-                iProcDigits += 1;
-				if (iProcDigits != *(pCountDigits) -1 ) (pOperations + k + 1)->right_op = (pOperations + k)->right_op;
+				cout << "Proc dig " << iProcDigits << "\n";
+				iProcDigits += 1;
+				if (iProcDigits != *(pCountDigits) - 1 ) (pOperations + k + 1)->right_op = (pOperations + k)->right_op;
             }
         }
+
+
+		cout << "Proc end " << iProcDigits << "\n";
     }
 }
