@@ -2,7 +2,6 @@
 
 #include <iostream>
 #include <cstdio>
-#include <stdio.h>
 using namespace std;
 
 struct opr {
@@ -161,7 +160,6 @@ float charToFloat(char *p, int iStartNum, int iEndNum)
 
 	}
 	
-	cout << "charToFloat " << fFinalNum << "\n";
 	return fFinalNum;
 }
 
@@ -175,11 +173,8 @@ float getResult(opr *pOperations, float *pOperands, int *pCountDigits)
 
     // Do multiple and division
     doOperationGroup(pOperations, pOperands, cOperationSymb, cPriority1Sz, pCountDigits, iProcDigits);
-	cout <<"First re " << *pOperands << "\n";
     if (iProcDigits == *pCountDigits - 1) return *(pOperands);
-	cout << "Digits " << *pCountDigits << "\n";
-	cout << "Proc " << iProcDigits << "\n";
-	cout << "is done? " << *pOperands << "\n";
+	cout << "is done? ";
     // Do plus and minus
     doOperationGroup(pOperations, pOperands, cOperationSymb, cPriority2Sz, pCountDigits, iProcDigits);
 	return *(pOperands);
@@ -188,6 +183,8 @@ float getResult(opr *pOperations, float *pOperands, int *pCountDigits)
 
 float doOperation(float fOperandL, float fOperandR, char cOperation)
 {
+
+	cout << "left " << fOperandL << " right " << fOperandR << "\n";
 	switch (cOperation)
 	{
 	case '+':
@@ -208,21 +205,24 @@ void doOperationGroup(opr *pOperations, float *pOperands, char *pOperationGroup,
 {
     char cCurOperation = '\0';
 	// pCountDigits - переписать на ссылку
-    for (int i= 0; i < *pCountDigits-1; i++){
-        for (int k = *(pOperationGroupLim); k < *(pOperationGroupLim + 1); k++) {
-			cCurOperation = isInArray((pOperations + i)->symbol, pOperationGroup, *(pOperationGroupLim), *(pOperationGroupLim + 1));
-			cout << "Cur op " << cCurOperation << "\n";
-			cout << "Cur op1  " << (pOperations + i)->symbol << "\n";
-            if (cCurOperation) {
-                *(pOperands + (pOperations + k)->left_op) = doOperation(*(pOperands + (pOperations +k)->left_op),
-                                                                         *(pOperands + (pOperations + k) ->right_op),cCurOperation);
-				cout << "Proc dig " << iProcDigits << "\n";
-				iProcDigits += 1;
-				if (iProcDigits != *(pCountDigits) - 1 ) (pOperations + k + 1)->right_op = (pOperations + k)->right_op;
-            }
+	//Wrong 2+5*2+4+3/3+100 expected 117
+    for (int i = 0; i < *pCountDigits-1; i++){
+		cCurOperation = isInArray((pOperations + i)->symbol, pOperationGroup, *(pOperationGroupLim), *(pOperationGroupLim + 1));
+		cout << "OP " << (pOperations + i)->symbol << " " << (pOperations + i)->left_op << " " << (pOperations + i)->right_op << "\n";
+        if (cCurOperation) {
+			*(pOperands + (pOperations + i)->left_op) = doOperation(*(pOperands + (pOperations + i)->left_op),
+                                                                    *(pOperands + (pOperations + i) ->right_op),cCurOperation);
+
+			cout << "Res " << *(pOperands + (pOperations + i)->left_op) << "\n";
+			iProcDigits += 1;
+		//	if (iProcDigits != *(pCountDigits) - 1 ) (pOperations + i + 1)->left_op = (pOperations + i)->left_op;
+			if (iProcDigits != *(pCountDigits)-1)
+			{ 
+				int z = i + 1;
+				while (!(isInArray((pOperations + z)->symbol, pOperationGroup, *(pOperationGroupLim), *(pOperationGroupLim + 1)))) z++;
+
+				(pOperations + z)->left_op = (pOperations + i)->left_op;
+			};
         }
-
-
-		cout << "Proc end " << iProcDigits << "\n";
     }
 }
