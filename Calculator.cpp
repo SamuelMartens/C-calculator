@@ -14,13 +14,12 @@ struct opr {
 
 // ivan: it would be better to move all function declarations to separated header file
 void removeWhitesp(char *p);
-void getStringPart(char *pFullString, char *pPartString, int &iStart, int &iEnd);
-void doOperationGroup(opr *pOperations, float *pOperands, char *pOperationGroup, int *pOperationGroupLim, int *pCountDigits, int &iProcDigits);
+void doOperationGroup(opr *pOperations, float *pOperands, char *pOperationGroup, const int *pOperationGroupLim, int *pCountDigits, int &iProcDigits);
 int getTokens(char *p, float *pOperands, opr *pOperations, int *pCountDigits, int *pCountSymbols);
 float getResult(opr *pOperations, float *pOperands, int *pCountDigits);
 float doOperation(float fOperandL, float fOperandR, char cOperation);
 float charToFloat(char *p, int iStartNum, int iEndNum);
-char isInArray(char cSymbol,char *pContainer);
+char isInArray(char cSymbol,char *pContainer, int iStart = 0, int iEnd = 0);
 
 
 
@@ -70,7 +69,7 @@ void removeWhitesp(char *p)
 }
 
 
-int getTokens(char *p, float *pOperands, char *pOperations, int *pCountDigits, int *pCountSymbols )
+int getTokens(char *p, float *pOperands, opr *pOperations, int *pCountDigits, int *pCountSymbols )
 {
 	int iStartNum = -1, iEndNum = 0, iOperandsPos = 0, iOperationsPos = 0;
 	char cSymbols[] = "*/+-", cDigits[] = "0123456789", cSpecialSymbols[] = ".()";
@@ -95,9 +94,9 @@ int getTokens(char *p, float *pOperands, char *pOperations, int *pCountDigits, i
 				iStartNum = -1;
 				iOperandsPos++;
 			}
-			*(pOperations + iOperationsPos)->symbol = *(p + i);
-			*(pOperations + iOperationsPos)->left_op = i - 1;
-			*(pOperations + iOperationsPos)->right_op = i + 1;
+			(pOperations + iOperationsPos)->symbol = *(p + i);
+			(pOperations + iOperationsPos)->left_op = i - 1;
+			(pOperations + iOperationsPos)->right_op = i + 1;
 			iOperationsPos++;
 			(*pCountSymbols)++;
 		}
@@ -115,12 +114,21 @@ int getTokens(char *p, float *pOperands, char *pOperations, int *pCountDigits, i
 }
 
 
-char isInArray(char cSymbol, char *pContainer)
+char isInArray(char cSymbol, char *pContainer, int iStart, int iEnd )
 {
-	for (int i = 0; *(pContainer + i); i++) {
-		if (cSymbol == *(pContainer + i)) return cSymbol;
+	if (iStart == 0 && iEnd == 0)
+	{
+		for (int i = 0; *(pContainer + i); i++) {
+			if (cSymbol == *(pContainer + i)) return cSymbol;
+		}
 	}
-
+	else
+	{
+		for (int i = iStart; i < iEnd && *(pContainer + i); i++) {
+			if (cSymbol == *(pContainer + i)) return cSymbol;
+		}
+	};
+	
 	return '\0';
 }
 
@@ -159,15 +167,15 @@ float charToFloat(char *p, int iStartNum, int iEndNum)
 float getResult(opr *pOperations, float *pOperands, int *pCountDigits)
 {
 	const int iOperSz = 5, cPriority1Sz[] = {0, 2}, cPriority2Sz[] = {2, 4};
-    const char cOperationSymb[iOperSz] = "*/+-";
+    char cOperationSymb[iOperSz] = "*/+-";
 	int iProcDigits = 0;
     char cPartString[iOperSz];
 
     // Do multiple and division
-    doOperationGroup(pOperations, pOperands, cOperationSymb, &cPriority1Sz, pCountDigits, iProcDigits);
+    doOperationGroup(pOperations, pOperands, cOperationSymb, cPriority1Sz, pCountDigits, iProcDigits);
     if (iProcDigits == *(pCountDigits) -1) return *(pOperands);
     // Do plus and minus
-    doOperationGroup(pOperations, pOperands, cOperationSymb, &cPriority2Sz, pCountDigits, iProcDigits);
+    doOperationGroup(pOperations, pOperands, cOperationSymb, cPriority2Sz, pCountDigits, iProcDigits);
 	return *(pOperands);
 }
 
@@ -190,26 +198,19 @@ float doOperation(float fOperandL, float fOperandR, char cOperation)
 }
 
 
-void getStringPart(char *pFullString, char *pPartString , int &iStart, int &iEnd)
-{
-    int k;
-    for (int i = iStart, k = 0; i < iEnd; i++, k++) *(pPartString + k) = *(pFullString + i);
-    if (*(pFullString + k + 1)) *(pFullString  + k + 1) = '\0';
-}
-
-void doOperationGroup(opr *pOperations, float *pOperands, char *pOperationGroup, int *pOperationGroupLim, int *pCountDigits, int &iProcDigits)
+void doOperationGroup(opr *pOperations, float *pOperands, char *pOperationGroup,const int *pOperationGroupLim, int *pCountDigits, int &iProcDigits)
 {
     char cCurOperation = '\0';
-
-    for (int i= 0; i < *pCountDigits; i++){
+	// pCountDigits - переписать на ссылку
+    for (int i= 0; i < *(pCountDigits)-1; i++){
         for (int k = *(pOperationGroupLim); k < *(pOperationGroupLim + 1); k++) {
-            cCurOperation = (isInArray(*(pOperations + k)->symbol,
-                                       getStringPart(cOperationSymb, cPartString, cPriority1Sz[0], cPriority1Sz[1])));
+			cCurOperation = isInArray((pOperations + i)->symbol, pOperationGroup, *(pOperationGroupLim), *(pOperationGroupLim + 1));
             if (cCurOperation) {
-                *(pOperands + *(pOperations + k)->left_op) = doOperation(*(pOperands + *(pOperations +k)->left_op),
-                                                                         *(pOperands + *(pOperations + k) ->right_op),cCurOperation);
-                if (*(pOperations + k + 1)) *(pOperations + k +1)->right_op = *(pOperations + k) ->right_op;
-                iProcDigits+=1;
+                *(pOperands + (pOperations + k)->left_op) = doOperation(*(pOperands + (pOperations +k)->left_op),
+                                                                         *(pOperands + (pOperations + k) ->right_op),cCurOperation);
+             //   if (*(pOperations + k + 1)) (pOperations + k +1)->right_op = (pOperations + k) ->right_op;
+                iProcDigits += 1;
+				if (iProcDigits != *(pCountDigits) -1 ) (pOperations + k + 1)->right_op = (pOperations + k)->right_op;
             }
         }
     }
