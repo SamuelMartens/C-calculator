@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <cstdio>
+#include <stdio.h>
 using namespace std;
 
 struct opr {
@@ -72,7 +73,7 @@ void removeWhitesp(char *p)
 int getTokens(char *p, float *pOperands, char *pOperations, int *pCountDigits, int *pCountSymbols )
 {
 	int iStartNum = -1, iEndNum = 0, iOperandsPos = 0, iOperationsPos = 0;
-	const char cSymbols[] = "*/+-", cDigits[] = "0123456789", cSpecialSymbols[] = ".()";
+	char cSymbols[] = "*/+-", cDigits[] = "0123456789", cSpecialSymbols[] = ".()";
 
 	for (int i = 0; *(p + i); i++) {
 		
@@ -94,9 +95,9 @@ int getTokens(char *p, float *pOperands, char *pOperations, int *pCountDigits, i
 				iStartNum = -1;
 				iOperandsPos++;
 			}
-			*(pOperations + iOperationsPos).symbol = *(p + i);
-			*(pOperations + iOperationsPos).left_op = i - 1;
-			*(pOperations + iOperationsPos).right_op = i + 1;
+			*(pOperations + iOperationsPos)->symbol = *(p + i);
+			*(pOperations + iOperationsPos)->left_op = i - 1;
+			*(pOperations + iOperationsPos)->right_op = i + 1;
 			iOperationsPos++;
 			(*pCountSymbols)++;
 		}
@@ -161,14 +162,13 @@ float getResult(opr *pOperations, float *pOperands, int *pCountDigits)
     const char cOperationSymb[iOperSz] = "*/+-";
 	int iProcDigits = 0;
     char cPartString[iOperSz];
-	float fResult;
 
     // Do multiple and division
     doOperationGroup(pOperations, pOperands, cOperationSymb, &cPriority1Sz, pCountDigits, iProcDigits);
-    if (iProcDigits == *(pCountDigits) -1) return fResult;
+    if (iProcDigits == *(pCountDigits) -1) return *(pOperands);
     // Do plus and minus
     doOperationGroup(pOperations, pOperands, cOperationSymb, &cPriority2Sz, pCountDigits, iProcDigits);
-	return fResult;
+	return *(pOperands);
 }
 
 
