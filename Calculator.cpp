@@ -6,6 +6,7 @@ using namespace std;
 
 struct opr {
 	char symbol;
+	char processed = 0;
 	int left_op;
 	int right_op;
 };
@@ -96,7 +97,6 @@ int getTokens(char *p, float *pOperands, opr *pOperations, int *pCountDigits, in
 			(pOperations + iOperationsPos)->symbol = *(p + i);
 			(pOperations + iOperationsPos)->left_op = iOperationsPos;
 			(pOperations + iOperationsPos)->right_op = iOperationsPos + 1;
-			cout << "OP " << (pOperations + iOperationsPos)->symbol << " " << (pOperations + iOperationsPos)->left_op << " " << (pOperations + iOperationsPos)->right_op << "\n";
 			iOperationsPos++;
 			(*pCountSymbols)++;
 		}
@@ -174,7 +174,6 @@ float getResult(opr *pOperations, float *pOperands, int *pCountDigits)
     // Do multiple and division
     doOperationGroup(pOperations, pOperands, cOperationSymb, cPriority1Sz, pCountDigits, iProcDigits);
     if (iProcDigits == *pCountDigits - 1) return *(pOperands);
-	cout << "is done? ";
     // Do plus and minus
     doOperationGroup(pOperations, pOperands, cOperationSymb, cPriority2Sz, pCountDigits, iProcDigits);
 	return *(pOperands);
@@ -183,8 +182,6 @@ float getResult(opr *pOperations, float *pOperands, int *pCountDigits)
 
 float doOperation(float fOperandL, float fOperandR, char cOperation)
 {
-
-	cout << "left " << fOperandL << " right " << fOperandR << "\n";
 	switch (cOperation)
 	{
 	case '+':
@@ -204,23 +201,18 @@ float doOperation(float fOperandL, float fOperandR, char cOperation)
 void doOperationGroup(opr *pOperations, float *pOperands, char *pOperationGroup,const int *pOperationGroupLim, int *pCountDigits, int &iProcDigits)
 {
     char cCurOperation = '\0';
-	// pCountDigits - переписать на ссылку
-	//Wrong 2+5*2+4+3/3+100 expected 117
     for (int i = 0; i < *pCountDigits-1; i++){
 		cCurOperation = isInArray((pOperations + i)->symbol, pOperationGroup, *(pOperationGroupLim), *(pOperationGroupLim + 1));
-		cout << "OP " << (pOperations + i)->symbol << " " << (pOperations + i)->left_op << " " << (pOperations + i)->right_op << "\n";
         if (cCurOperation) {
 			*(pOperands + (pOperations + i)->left_op) = doOperation(*(pOperands + (pOperations + i)->left_op),
                                                                     *(pOperands + (pOperations + i) ->right_op),cCurOperation);
-
-			cout << "Res " << *(pOperands + (pOperations + i)->left_op) << "\n";
+			(pOperations + i)->processed = 1;
 			iProcDigits += 1;
-		//	if (iProcDigits != *(pCountDigits) - 1 ) (pOperations + i + 1)->left_op = (pOperations + i)->left_op;
 			if (iProcDigits != *(pCountDigits)-1)
-			{ 
+			{
 				int z = i + 1;
-				while (!(isInArray((pOperations + z)->symbol, pOperationGroup, *(pOperationGroupLim), *(pOperationGroupLim + 1)))) z++;
-
+				// Check left operand index, which is not changed, if it is last operation
+				while ((pOperations + z)->processed && ((pOperations + z)->right_op + 1 != *pCountDigits)) z++;
 				(pOperations + z)->left_op = (pOperations + i)->left_op;
 			};
         }
