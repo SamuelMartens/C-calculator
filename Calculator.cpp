@@ -30,7 +30,7 @@ int getStrLen(char *p);
 float getResult(opr *pOperations, float *pOperands, int *pCountDigits);
 float doOperation(float fOperandL, float fOperandR, char cOperation);
 float charToFloat(char *p, int iStartNum, int iEndNum);
-char isInArray(char cSymbol,char *pContainer, int iStart = 0, int iEnd = 0);
+char isInArray(char cSymbol,char *pContainer, int iStart = -1, int iEnd = -1);
 
 
 int main()
@@ -47,6 +47,8 @@ int main()
 	gets_s(cRawString, SZ_RAW_STRING);
 
 	removeWhitesp(cRawString);
+	splitOnSubExp(suSubExp, cRawString);
+	return 1; //Debug
 	iError = getTokens(cRawString, fOperands, opOperations, &iCountDigits, &iCountSymbols);
 	if (iError != 0) {
 		cout << "Error in your equation";
@@ -125,7 +127,7 @@ int getTokens(char *p, float *pOperands, opr *pOperations, int *pCountDigits, in
 }
 
 
-char isInArray(char cSymbol, char *pContainer, int iStart = -1, int iEnd = -1 )
+char isInArray(char cSymbol, char *pContainer, int iStart, int iEnd )
 {
 	if (iStart == -1 && iEnd == -1)
 	{
@@ -245,7 +247,6 @@ void doOperationGroup(opr *pOperations, float *pOperands, char *pOperationGroup,
 void splitOnSubExp(subexp *pSubExp, char *pRaw)
 {
 	int iCurLevel = 0;
-	char cCurExp[SZ_RAW_STRING];
 
 	for (int i = 0, k = 0, iDelta = 0, iIndex = 0; *(pRaw + i); i++){
 		iIndex = i - iDelta;
@@ -253,24 +254,26 @@ void splitOnSubExp(subexp *pSubExp, char *pRaw)
 		{
 			case '(':
 				(pSubExp + k)->level = iCurLevel;
-				cCurExp[iIndex] = '$';
-				cCurExp[iIndex + 1] = '\0';
-				(pSubExp + k)->exp = cCurExp;
-				iCurLevel += 1;
+				(pSubExp + k)->exp[iIndex] = '$';
+				(pSubExp + k)->exp[iIndex + 1] = '\0';
+				iCurLevel++;
+				iDelta = i;
 				k++;
-				//iStart = getStrLen((pSubExp + k)->exp);
 				break;
 			case ')':
 				// Work with this, a lot of mistakes here(in this case)
-				(pSubExp + k)->exp[iIndex+1] = '\0';
-				k--;
+				(pSubExp + k)->exp[iIndex] = '\0';
+				k--; //Need get parent here
 				iDelta = i - getStrLen((pSubExp + k)->exp);
-				cCurExp[iIndex] = '$';
-				iCurLevel -= 1;
+				cout << "Ind1 " << iIndex <<"\n";
+				cout << "Del2 " << iDelta << "\n";
+				iCurLevel--;
 				break;
 			default:
-				cCurExp[iIndex] = *(pRaw + i);
+				(pSubExp + k)->exp[iIndex] = *(pRaw + i);
 		}
+		cout << "Cur symb " << *(pRaw + i)<<" ind " << iIndex << "\n";
+		cout << "SubExt " << (pSubExp + k)->exp << "\n";
 	}
 }
 
