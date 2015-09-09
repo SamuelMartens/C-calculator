@@ -4,6 +4,8 @@
 #include <cstdio>
 using namespace std;
 
+const int SZ_RAW_STRING = 80;
+
 struct opr {
 	char symbol;
 	char processed = 0;
@@ -11,30 +13,38 @@ struct opr {
 	int right_op;
 };
 
+struct subexp {
+	// This size must be the same as in szRawString
+	char exp[SZ_RAW_STRING] = "\0";
+	int level = -1;
+	float result;
+};
+
 
 // ivan: it would be better to move all function declarations to separated header file
 void removeWhitesp(char *p);
+void splitOnSubExp(subexp *pSubExp, char *pRawString);
 void doOperationGroup(opr *pOperations, float *pOperands, char *pOperationGroup, const int *pOperationGroupLim, int *pCountDigits, int &iProcDigits);
 int getTokens(char *p, float *pOperands, opr *pOperations, int *pCountDigits, int *pCountSymbols);
+int getStrLen(char *p);
 float getResult(opr *pOperations, float *pOperands, int *pCountDigits);
 float doOperation(float fOperandL, float fOperandR, char cOperation);
 float charToFloat(char *p, int iStartNum, int iEndNum);
 char isInArray(char cSymbol,char *pContainer, int iStart = 0, int iEnd = 0);
 
 
-
-
 int main()
 {
-	const int szRawString = 80 , szGlobalSize = 20;
-	char cRawString[szRawString];
+	const int szGlobalSize = 20;
+	char cRawString[SZ_RAW_STRING];
 	float fOperands[szGlobalSize], fResult;
 	int iCountDigits=0, iCountSymbols=0;
 	int iError = 0;
 	opr opOperations[szGlobalSize];
+	subexp suSubExp[szGlobalSize];
 
 	cout << "Print your equation: ";
-	gets_s(cRawString, szRawString);
+	gets_s(cRawString, SZ_RAW_STRING);
 
 	removeWhitesp(cRawString);
 	iError = getTokens(cRawString, fOperands, opOperations, &iCountDigits, &iCountSymbols);
@@ -42,7 +52,7 @@ int main()
 		cout << "Error in your equation";
 		return 1;
 	}
-	// Turn tprefix "f"
+
 	fResult = getResult(opOperations, fOperands, &iCountDigits);
 	cout << "Result " << fResult << "\n";
 
@@ -75,7 +85,7 @@ int getTokens(char *p, float *pOperands, opr *pOperations, int *pCountDigits, in
 	char cSymbols[] = "*/+-", cDigits[] = "0123456789", cSpecialSymbols[] = ".()";
 
 	for (int i = 0; *(p + i); i++) {
-		
+
 		if (isInArray(*(p + i), cDigits)) {
 
 			if (iStartNum == -1) iStartNum = i;
@@ -115,11 +125,23 @@ int getTokens(char *p, float *pOperands, opr *pOperations, int *pCountDigits, in
 }
 
 
-char isInArray(char cSymbol, char *pContainer, int iStart, int iEnd )
+char isInArray(char cSymbol, char *pContainer, int iStart = -1, int iEnd = -1 )
 {
-	if (iStart == 0 && iEnd == 0)
+	if (iStart == -1 && iEnd == -1)
 	{
 		for (int i = 0; *(pContainer + i); i++) {
+			if (cSymbol == *(pContainer + i)) return cSymbol;
+		}
+	}
+	else if (iStart != -1 && iEnd == -1)
+	{
+		for (int i = iStart; *(pContainer + i); i++) {
+			if (cSymbol == *(pContainer + i)) return cSymbol;
+		}
+	}
+	else if (iStart == -1 && iEnd != -1)
+	{
+		for (int i = 0; i < iEnd && *(pContainer + i); i++) {
 			if (cSymbol == *(pContainer + i)) return cSymbol;
 		}
 	}
@@ -184,14 +206,14 @@ float doOperation(float fOperandL, float fOperandR, char cOperation)
 {
 	switch (cOperation)
 	{
-	case '+':
-		return fOperandL + fOperandR;
-	case '-':
-		return fOperandL - fOperandR;
-    case '*':
-        return fOperandL * fOperandR;
-    case '/':
-        return  fOperandL / fOperandR;
+		case '+':
+			return fOperandL + fOperandR;
+		case '-':
+			return fOperandL - fOperandR;
+    	case '*':
+        	return fOperandL * fOperandR;
+    	case '/':
+        	return  fOperandL / fOperandR;
 	}
 
 	return 0;
@@ -218,3 +240,45 @@ void doOperationGroup(opr *pOperations, float *pOperands, char *pOperationGroup,
         }
     }
 }
+
+
+void splitOnSubExp(subexp *pSubExp, char *pRaw)
+{
+	int iCurLevel = 0;
+	char cCurExp[SZ_RAW_STRING];
+
+	for (int i = 0, k = 0, iDelta = 0, iIndex = 0; *(pRaw + i); i++){
+		iIndex = i - iDelta;
+		switch (*(pRaw + i))
+		{
+			case '(':
+				(pSubExp + k)->level = iCurLevel;
+				cCurExp[iIndex] = '$';
+				cCurExp[iIndex + 1] = '\0';
+				(pSubExp + k)->exp = cCurExp;
+				iCurLevel += 1;
+				k++;
+				//iStart = getStrLen((pSubExp + k)->exp);
+				break;
+			case ')':
+				// Work with this, a lot of mistakes here(in this case)
+				(pSubExp + k)->exp[iIndex+1] = '\0';
+				k--;
+				iDelta = i - getStrLen((pSubExp + k)->exp);
+				cCurExp[iIndex] = '$';
+				iCurLevel -= 1;
+				break;
+			default:
+				cCurExp[iIndex] = *(pRaw + i);
+		}
+	}
+}
+
+
+int getStrLen(char *p)
+{
+	int i = 0;
+	while (*(p+i)) i++;
+	return i + 1;
+}
+
