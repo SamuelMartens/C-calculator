@@ -27,6 +27,7 @@ void splitOnSubExp(subexp *pSubExp, char *pRawString);
 void doOperationGroup(opr *pOperations, float *pOperands, char *pOperationGroup, const int *pOperationGroupLim, int *pCountDigits, int &iProcDigits);
 int getTokens(char *p, float *pOperands, opr *pOperations, int *pCountDigits, int *pCountSymbols);
 int getStrLen(char *p);
+int getParent(subexp *pSubExp, int iChildInd);
 float getResult(opr *pOperations, float *pOperands, int *pCountDigits);
 float doOperation(float fOperandL, float fOperandR, char cOperation);
 float charToFloat(char *p, int iStartNum, int iEndNum);
@@ -247,23 +248,29 @@ void doOperationGroup(opr *pOperations, float *pOperands, char *pOperationGroup,
 void splitOnSubExp(subexp *pSubExp, char *pRaw)
 {
 	int iCurLevel = 0;
+	int iLastPr = 1;
 
 	for (int i = 0, k = 0, iDelta = 0, iIndex = 0; *(pRaw + i); i++){
+		// Could be problems with expression like 5+((10+11)+2) start parentless problem
 		iIndex = i - iDelta;
 		switch (*(pRaw + i))
 		{
 			case '(':
+				// While get parent is provided id is problem to get next expression
 				(pSubExp + k)->level = iCurLevel;
 				(pSubExp + k)->exp[iIndex] = '$';
 				(pSubExp + k)->exp[iIndex + 1] = '\0';
 				iCurLevel++;
 				iDelta = i;
+				k = iLastPr;
 				k++;
 				break;
 			case ')':
-				// Work with this, a lot of mistakes here(in this case)
+
 				(pSubExp + k)->exp[iIndex] = '\0';
-				k--; //Need get parent here
+				iLastPr = k;
+				//k--; //Need get parent here
+				k = (getParent(pSubExp, k) != -1) ? getParent(pSubExp, k) : 0;
 				iDelta = i - getStrLen((pSubExp + k)->exp);
 				cout << "Ind1 " << iIndex <<"\n";
 				cout << "Del2 " << iDelta << "\n";
@@ -285,3 +292,14 @@ int getStrLen(char *p)
 	return i + 1;
 }
 
+
+int getParent(subexp *pSubExp, int iChildInd)
+{
+	// Return index of parent element. If no parent element return "-1"
+	for (int i = iChildInd - 1; i != 0; i--)
+	{
+		if ((pSubExp + i)->level+1 == (pSubExp + iChildInd)->level) return i;
+	}
+
+	return -1;
+}
