@@ -248,7 +248,7 @@ void doOperationGroup(opr *pOperations, float *pOperands, char *pOperationGroup,
 void splitOnSubExp(subexp *pSubExp, char *pRaw)
 {
 	int iCurLevel = 0;
-	int iLastPr = 1;
+	int iLastPr = 0;
 
 	for (int i = 0, k = 0, iDelta = 0, iIndex = 0; *(pRaw + i); i++){
 		// Could be problems with expression like 5+((10+11)+2) start parentless problem
@@ -256,12 +256,12 @@ void splitOnSubExp(subexp *pSubExp, char *pRaw)
 		switch (*(pRaw + i))
 		{
 			case '(':
-				// While get parent is provided id is problem to get next expression
+				// While get parent is provided it is problem to get next expression
 				(pSubExp + k)->level = iCurLevel;
 				(pSubExp + k)->exp[iIndex] = '$';
 				(pSubExp + k)->exp[iIndex + 1] = '\0';
 				iCurLevel++;
-				iDelta = i;
+				iDelta = i + 1;
 				k = iLastPr;
 				k++;
 				break;
