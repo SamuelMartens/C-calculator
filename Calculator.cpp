@@ -256,12 +256,12 @@ void splitOnSubExp(subexp *pSubExp, char *pRaw)
 		switch (*(pRaw + i))
 		{
 			case '(':
-				// While get parent is provided id is problem to get next expression
+				// While get parent is provided it is problem to get next expression
 				(pSubExp + k)->level = iCurLevel;
 				(pSubExp + k)->exp[iIndex] = '$';
 				(pSubExp + k)->exp[iIndex + 1] = '\0';
 				iCurLevel++;
-				iDelta = i;
+				iDelta = i + 1;
 				k = iLastPr;
 				k++;
 				break;
