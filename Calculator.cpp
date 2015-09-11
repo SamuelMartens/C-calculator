@@ -251,12 +251,12 @@ void splitOnSubExp(subexp *pSubExp, char *pRaw)
 	int iLastPr = 0;
 
 	for (int i = 0, k = 0, iDelta = 0, iIndex = 0; *(pRaw + i); i++){
+		// Crit error if we have several levels of ins.
 		// Could be problems with expression like 5+((10+11)+2) start parentless problem
 		iIndex = i - iDelta;
 		switch (*(pRaw + i))
 		{
 			case '(':
-				// While get parent is provided it is problem to get next expression
 				(pSubExp + k)->level = iCurLevel;
 				(pSubExp + k)->exp[iIndex] = '$';
 				(pSubExp + k)->exp[iIndex + 1] = '\0';
@@ -266,25 +266,28 @@ void splitOnSubExp(subexp *pSubExp, char *pRaw)
 				k++;
 				break;
 			case ')':
-
+				//cout << "G1\n";
 				(pSubExp + k)->exp[iIndex] = '\0';
+				//cout << "G2\n";
 				iLastPr = k;
-				//k--; //Need get parent here
+				//cout << "G3 k " << k <<"\n";
 				k = (getParent(pSubExp, k) != -1) ? getParent(pSubExp, k) : 0;
-				iDelta = i - getStrLen((pSubExp + k)->exp);
-				//cout << "Ind1 " << iIndex <<"\n";
+				//cout << "G4\n";
+				// We increase iDelta on 2 becouse we need to think NEXT iteration and not count '\0' symbol
+				iDelta = i + 2 - getStrLen((pSubExp + k)->exp);
+				//cout << "G5\n";
+				//cout << "Delta " << iDelta << "\n";
 				iCurLevel--;
+				//cout << "G6\n";
 				break;
 			default:
-				((pSubExp + k)->exp)[iIndex] = *(pRaw + i);
-				cout <<"Sub Exp "<< (pSubExp + k)->exp[iIndex] << "\n";
-				cout << "Raw " << *(pRaw + i) << "\n";
+				(pSubExp + k)->exp[iIndex] = *(pRaw + i);
 		}
-		//cout << "Cur symb " << *(pRaw + i)<<" ind " << iIndex << "\n";
+		cout << *(pRaw + i) << " " << "iIndex " << iIndex << "\n";
 		cout << "SubExt " << (pSubExp + k)->exp << "\n";
-		//cout << "SubExt1 " << (pSubExp + 1)->exp << "\n";
-		cout << "k index " << k << "\n";
 	}
+
+	for (int i = 0; i < 10; i++) cout << i <<") " << (pSubExp + i)->exp << "\n";
 }
 
 
@@ -299,7 +302,7 @@ int getStrLen(char *p)
 int getParent(subexp *pSubExp, int iChildInd)
 {
 	// Return index of parent element. If no parent element return "-1"
-	for (int i = iChildInd - 1; i != 0; i--)
+	for (int i = iChildInd - 1; i > 0; i--)
 	{
 		if ((pSubExp + i)->level+1 == (pSubExp + iChildInd)->level) return i;
 	}
