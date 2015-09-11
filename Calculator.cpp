@@ -248,7 +248,7 @@ void doOperationGroup(opr *pOperations, float *pOperands, char *pOperationGroup,
 void splitOnSubExp(subexp *pSubExp, char *pRaw)
 {
 	int iCurLevel = 0;
-	int iLastPr = 1;
+	int iLastPr = 0;
 
 	for (int i = 0, k = 0, iDelta = 0, iIndex = 0; *(pRaw + i); i++){
 		// Could be problems with expression like 5+((10+11)+2) start parentless problem
@@ -272,15 +272,18 @@ void splitOnSubExp(subexp *pSubExp, char *pRaw)
 				//k--; //Need get parent here
 				k = (getParent(pSubExp, k) != -1) ? getParent(pSubExp, k) : 0;
 				iDelta = i - getStrLen((pSubExp + k)->exp);
-				cout << "Ind1 " << iIndex <<"\n";
-				cout << "Del2 " << iDelta << "\n";
+				//cout << "Ind1 " << iIndex <<"\n";
 				iCurLevel--;
 				break;
 			default:
-				(pSubExp + k)->exp[iIndex] = *(pRaw + i);
+				((pSubExp + k)->exp)[iIndex] = *(pRaw + i);
+				cout <<"Sub Exp "<< (pSubExp + k)->exp[iIndex] << "\n";
+				cout << "Raw " << *(pRaw + i) << "\n";
 		}
-		cout << "Cur symb " << *(pRaw + i)<<" ind " << iIndex << "\n";
+		//cout << "Cur symb " << *(pRaw + i)<<" ind " << iIndex << "\n";
 		cout << "SubExt " << (pSubExp + k)->exp << "\n";
+		//cout << "SubExt1 " << (pSubExp + 1)->exp << "\n";
+		cout << "k index " << k << "\n";
 	}
 }
 
