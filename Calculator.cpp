@@ -262,28 +262,23 @@ void splitOnSubExp(subexp *pSubExp, char *pRaw)
 				(pSubExp + k)->exp[iIndex + 1] = '\0';
 				iCurLevel++;
 				iDelta = i + 1;
-				k = iLastPr;
+				// Why it is help?
+				k += iLastPr;
 				k++;
 				break;
 			case ')':
-				//cout << "G1\n";
 				(pSubExp + k)->exp[iIndex] = '\0';
-				//cout << "G2\n";
 				iLastPr = k;
-				//cout << "G3 k " << k <<"\n";
 				k = (getParent(pSubExp, k) != -1) ? getParent(pSubExp, k) : 0;
-				//cout << "G4\n";
 				// We increase iDelta on 2 becouse we need to think NEXT iteration and not count '\0' symbol
 				iDelta = i + 2 - getStrLen((pSubExp + k)->exp);
-				//cout << "G5\n";
-				//cout << "Delta " << iDelta << "\n";
 				iCurLevel--;
 				//cout << "G6\n";
 				break;
 			default:
 				(pSubExp + k)->exp[iIndex] = *(pRaw + i);
 		}
-		cout << *(pRaw + i) << " " << "iIndex " << iIndex << "\n";
+		cout << *(pRaw + i) << " " << "iIndex " << k << "\n";
 		cout << "SubExt " << (pSubExp + k)->exp << "\n";
 	}
 
