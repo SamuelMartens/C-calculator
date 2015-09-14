@@ -45,7 +45,8 @@ int main()
 	subexp suSubExp[szGlobalSize];
 
 	cout << "Print your equation: ";
-	gets_s(cRawString, SZ_RAW_STRING);
+	fgets(cRawString, SZ_RAW_STRING, stdin);
+	cRawString[getStrLen(cRawString)-2] = '\0';
 
 	removeWhitesp(cRawString);
 	splitOnSubExp(suSubExp, cRawString);
