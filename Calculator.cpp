@@ -32,6 +32,7 @@ float getResult(opr *pOperations, float *pOperands, int *pCountDigits);
 float doOperation(float fOperandL, float fOperandR, char cOperation);
 float charToFloat(char *p, int iStartNum, int iEndNum);
 char isInArray(char cSymbol,char *pContainer, int iStart = -1, int iEnd = -1);
+char *floatToChar(float fDigit);
 
 
 int main()
@@ -277,7 +278,6 @@ void splitOnSubExp(subexp *pSubExp, char *pRaw)
 				(pSubExp + k)->exp[iIndex] = *(pRaw + i);
 		}
 	}
-
 	for (int i = 0; i < 10; i++) cout << i <<") " << (pSubExp + i)->exp << "\n";
 }
 
@@ -299,4 +299,24 @@ int getParent(subexp *pSubExp, int iChildInd)
 	}
 
 	return -1;
+}
+
+
+char *floatToChar(float fDigit)
+{
+	const int iDigitSize = 8;
+	char cDigitString[iDigitSize];
+	int i = 1, k = 0;
+
+	while (fDigit / (10 * i) => 10) i++;
+
+	while (i > 0)
+	{
+		cDigitString[k] = (char)(fDigit % (10*i) + 48);
+		i--;
+		fDigit /= 10;
+	}
+	cDigitString[k + 1] = '\0';
+
+	return &cDigitString;
 }
