@@ -16,7 +16,7 @@ struct opr {
 struct subexp {
 	// This size must be the same as in szRawString
 	char exp[SZ_RAW_STRING] = "\0";
-	int level = -1;
+	int level = 0;
 	float result;
 };
 
@@ -252,35 +252,30 @@ void splitOnSubExp(subexp *pSubExp, char *pRaw)
 	int iLastPr = 0;
 
 	for (int i = 0, k = 0, iDelta = 0, iIndex = 0; *(pRaw + i); i++){
-		// Crit error if we have several levels of ins.
-		// Could be problems with expression like 5+((10+11)+2) start parentless problem
 		iIndex = i - iDelta;
 		switch (*(pRaw + i))
 		{
 			case '(':
-				(pSubExp + k)->level = iCurLevel;
 				(pSubExp + k)->exp[iIndex] = '$';
 				(pSubExp + k)->exp[iIndex + 1] = '\0';
 				iCurLevel++;
 				iDelta = i + 1;
 				// Why it is help?
-				k += iLastPr;
+				k = iLastPr;
+				iLastPr++;
 				k++;
+				(pSubExp + k)->level = iCurLevel;
 				break;
 			case ')':
 				(pSubExp + k)->exp[iIndex] = '\0';
-				iLastPr = k;
 				k = (getParent(pSubExp, k) != -1) ? getParent(pSubExp, k) : 0;
 				// We increase iDelta on 2 becouse we need to think NEXT iteration and not count '\0' symbol
 				iDelta = i + 2 - getStrLen((pSubExp + k)->exp);
 				iCurLevel--;
-				//cout << "G6\n";
 				break;
 			default:
 				(pSubExp + k)->exp[iIndex] = *(pRaw + i);
 		}
-		cout << *(pRaw + i) << " " << "iIndex " << k << "\n";
-		cout << "SubExt " << (pSubExp + k)->exp << "\n";
 	}
 
 	for (int i = 0; i < 10; i++) cout << i <<") " << (pSubExp + i)->exp << "\n";
