@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <cstdio>
+#include <math.h>
 using namespace std;
 
 const int SZ_RAW_STRING = 80;
@@ -28,11 +29,12 @@ void doOperationGroup(opr *pOperations, float *pOperands, char *pOperationGroup,
 int getTokens(char *p, float *pOperands, opr *pOperations, int *pCountDigits, int *pCountSymbols);
 int getStrLen(char *p);
 int getParent(subexp *pSubExp, int iChildInd);
-int floatToChar(float fDigit, char *pCharDigit);
+int floatToChar(float fDigit, char *pCharDigit, const int iDigitSize=8);
 int concatStr(char *pOriginS, char *pAdditStr);
 float getResult(opr *pOperations, float *pOperands, int *pCountDigits);
 float doOperation(float fOperandL, float fOperandR, char cOperation);
 float charToFloat(char *p, int iStartNum, int iEndNum);
+
 char isInArray(char cSymbol,char *pContainer, int iStart = -1, int iEnd = -1);
 
 
@@ -250,8 +252,9 @@ void doOperationGroup(opr *pOperations, float *pOperands, char *pOperationGroup,
 
 void splitOnSubExp(subexp *pSubExp, char *pRaw)
 {
-	int iCurLevel = 0;
-	int iLastPr = 0;
+	const int iDigitSize = 8;
+	char cCharDigit[iDigitSize];
+	int iCurLevel = 0, iLastPr = 0, iPrevK;
 
 	for (int i = 0, k = 0, iDelta = 0, iIndex = 0; *(pRaw + i); i++){
 		iIndex = i - iDelta;
@@ -259,14 +262,17 @@ void splitOnSubExp(subexp *pSubExp, char *pRaw)
 		{
 			case '(':
 				(pSubExp + k)->exp[iIndex] = '$';
-				(pSubExp + k)->exp[iIndex + 1] = '\0';
+
+				//(pSubExp + k)->exp[iIndex + 1] = '\0';
 				iCurLevel++;
 				iDelta = i + 1;
-				// Why it is help?
+				iPrevK = k;
 				k = iLastPr;
 				iLastPr++;
 				k++;
 				(pSubExp + k)->level = iCurLevel;
+				floatToChar((float)k, cCharDigit);
+				concatStr((pSubExp + iPrevK)->exp, cCharDigit);
 				break;
 			case ')':
 				(pSubExp + k)->exp[iIndex] = '\0';
@@ -303,9 +309,9 @@ int getParent(subexp *pSubExp, int iChildInd)
 }
 
 
-int *floatToChar(float fDigit, char *pCharDigit)
+int floatToChar(float fDigit, char *pCharDigit, const int iDigitSize)
 {
-	const int iDigitSize = 8;
+	//const int iDigitSize = 8;
 	int i = 1, k = 0;
 
 	while (fDigit / (10 * i) >= 10) i++;
@@ -313,7 +319,7 @@ int *floatToChar(float fDigit, char *pCharDigit)
 
 	while (i > 0)
 	{
-		pCharDigit[k] = (char)(fDigit % (10*i) + 48);
+		pCharDigit[k] = (char)(fmod(fDigit,10*i) + 48);
 		i--;
 		fDigit /= 10;
 	}
@@ -327,5 +333,7 @@ int concatStr(char *pOriginS, char *pAdditStr)
 {
 	int iAdditLen = getStrLen(pAdditStr);
 
-	for (int i = getStrLen(pOriginS)-2, k=0;k < iAdditLen;k++,i++) pOriginS[i]=pAdditStr[k];
+	for (int i = getStrLen(pOriginS)-1, k=0;k < iAdditLen;k++,i++) pOriginS[i]=pAdditStr[k];
+
+	return 0;
 }
