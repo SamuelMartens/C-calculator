@@ -28,11 +28,12 @@ void doOperationGroup(opr *pOperations, float *pOperands, char *pOperationGroup,
 int getTokens(char *p, float *pOperands, opr *pOperations, int *pCountDigits, int *pCountSymbols);
 int getStrLen(char *p);
 int getParent(subexp *pSubExp, int iChildInd);
+int floatToChar(float fDigit, char *pCharDigit);
+int concatStr(char *pOriginS, char *pAdditStr);
 float getResult(opr *pOperations, float *pOperands, int *pCountDigits);
 float doOperation(float fOperandL, float fOperandR, char cOperation);
 float charToFloat(char *p, int iStartNum, int iEndNum);
 char isInArray(char cSymbol,char *pContainer, int iStart = -1, int iEnd = -1);
-char *floatToChar(float fDigit);
 
 
 int main()
@@ -302,21 +303,29 @@ int getParent(subexp *pSubExp, int iChildInd)
 }
 
 
-char *floatToChar(float fDigit)
+int *floatToChar(float fDigit, char *pCharDigit)
 {
 	const int iDigitSize = 8;
-	char cDigitString[iDigitSize];
 	int i = 1, k = 0;
 
-	while (fDigit / (10 * i) => 10) i++;
+	while (fDigit / (10 * i) >= 10) i++;
+	if (i > 8) return 1;
 
 	while (i > 0)
 	{
-		cDigitString[k] = (char)(fDigit % (10*i) + 48);
+		pCharDigit[k] = (char)(fDigit % (10*i) + 48);
 		i--;
 		fDigit /= 10;
 	}
-	cDigitString[k + 1] = '\0';
+	pCharDigit[k + 1] = '\0';
 
-	return &cDigitString;
+	return 0;
+}
+
+
+int concatStr(char *pOriginS, char *pAdditStr)
+{
+	int iAdditLen = getStrLen(pAdditStr);
+
+	for (int i = getStrLen(pOriginS)-2, k=0;k < iAdditLen;k++,i++) pOriginS[i]=pAdditStr[k];
 }
