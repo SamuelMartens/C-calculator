@@ -6,6 +6,7 @@
 using namespace std;
 
 const int SZ_RAW_STRING = 80;
+const int SZ_GLOBAL_SIZE = 20;
 
 struct opr {
 	char symbol;
@@ -26,7 +27,7 @@ struct subexp {
 void removeWhitesp(char *p);
 void splitOnSubExp(subexp *pSubExp, char *pRawString);
 void doOperationGroup(opr *pOperations, float *pOperands, char *pOperationGroup, const int *pOperationGroupLim, int *pCountDigits, int &iProcDigits);
-int getTokens(char *p, float *pOperands, opr *pOperations, int *pCountDigits, int *pCountSymbols);
+int getTokens(char *p, float *pOperands, opr *pOperations, int *pCountDigits, int *pCountSymbols, subexp *pSubExp);
 int getStrLen(char *p);
 int getParent(subexp *pSubExp, int iChildInd);
 int floatToChar(float fDigit, char *pCharDigit, const int iDigitSize=8);
@@ -40,13 +41,12 @@ char isInArray(char cSymbol,char *pContainer, int iStart = -1, int iEnd = -1);
 
 int main()
 {
-	const int szGlobalSize = 20;
 	char cRawString[SZ_RAW_STRING];
-	float fOperands[szGlobalSize], fResult;
+	float fOperands[SZ_GLOBAL_SIZE], fResult;
 	int iCountDigits=0, iCountSymbols=0;
 	int iError = 0;
-	opr opOperations[szGlobalSize];
-	subexp suSubExp[szGlobalSize];
+	opr opOperations[SZ_GLOBAL_SIZE];
+	subexp suSubExp[SZ_GLOBAL_SIZE];
 
 	cout << "Print your equation: ";
 	fgets(cRawString, SZ_RAW_STRING, stdin);
@@ -54,8 +54,7 @@ int main()
 
 	removeWhitesp(cRawString);
 	splitOnSubExp(suSubExp, cRawString);
-	return 1; //Debug
-	iError = getTokens(cRawString, fOperands, opOperations, &iCountDigits, &iCountSymbols);
+	iError = getTokens(suSubExp[0].exp, fOperands, opOperations, &iCountDigits, &iCountSymbols, suSubExp);
 	if (iError != 0) {
 		cout << "Error in your equation";
 		return 1;
@@ -87,10 +86,11 @@ void removeWhitesp(char *p)
 }
 
 
-int getTokens(char *p, float *pOperands, opr *pOperations, int *pCountDigits, int *pCountSymbols )
+int getTokens(char *p, float *pOperands, opr *pOperations, int *pCountDigits, int *pCountSymbols, subexp *pSubExp )
 {
 	int iStartNum = -1, iEndNum = 0, iOperandsPos = 0, iOperationsPos = 0;
-	char cSymbols[] = "*/+-", cDigits[] = "0123456789", cSpecialSymbols[] = ".()";
+	char cSymbols[] = "*/+-", cDigits[] = "0123456789", cSpecialSymbols[] = ".$";
+	bool bIsSubExp = false;
 
 	for (int i = 0; *(p + i); i++) {
 
@@ -101,7 +101,24 @@ int getTokens(char *p, float *pOperands, opr *pOperations, int *pCountDigits, in
 
 			if (isInArray(*(p + i + 1), cSymbols) || !(*(p + i + 1))) {
 				if (iEndNum < iStartNum) iEndNum = iStartNum;
-				*(pOperands + iOperandsPos) = charToFloat(p, iStartNum, iEndNum);
+				if (!bIsSubExp) *(pOperands + iOperandsPos) = charToFloat(p, iStartNum, iEndNum);
+				else
+				{
+					int iCurSub;
+					{
+						// Initialize separate parameters in this block
+						float fOperands[SZ_GLOBAL_SIZE];
+						opr opOperations[SZ_GLOBAL_SIZE];
+						int iCountDigits = 0, iCountSymbols = 0;
+						
+						// Here i will catch last error
+						iCurSub = charToFloat(p, iStartNum, iEndNum);
+						getTokens(pSubExp[iCurSub].exp, fOperands, opOperations, &iCountDigits, &iCountSymbols, pSubExp);
+						bIsSubExp = false;
+						pSubExp[iCurSub].result = getResult(opOperations, fOperands, &iCountDigits);
+					}
+					*(pOperands + iOperandsPos) = pSubExp[iCurSub].result;
+				}
 				(*pCountDigits)++;
 			} 
 
@@ -119,7 +136,16 @@ int getTokens(char *p, float *pOperands, opr *pOperations, int *pCountDigits, in
 			(*pCountSymbols)++;
 		}
 		else if (isInArray(*(p + i), cSpecialSymbols)) {
-			continue;
+			switch (p[i])
+			{
+				case '.':
+					continue;
+					break;
+				case '$':
+					bIsSubExp = true;
+					break;
+			}
+			
 		}
 		else {
 			cout << "Error " << *(p + i) << "\n";
@@ -285,7 +311,6 @@ void splitOnSubExp(subexp *pSubExp, char *pRaw)
 				(pSubExp + k)->exp[iIndex] = *(pRaw + i);
 		}
 	}
-	for (int i = 0; i < 10; i++) cout << i <<") " << (pSubExp + i)->exp << "\n";
 }
 
 
