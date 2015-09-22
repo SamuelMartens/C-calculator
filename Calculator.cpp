@@ -6,6 +6,16 @@
 #include "calc.h"
 using namespace std;
 
+/*
+ What class should i create?
+ 1) Raw string class
+ 2) Operation class
+ 3) Token keeper class
+
+ Also:
+ 1) Rewrite *(p+i) to p[i]
+
+ */
 
 int main()
 {
