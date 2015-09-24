@@ -90,7 +90,7 @@ int raw_materials::getTokens(char *p, subexp *pSubExp )
 						iCurSub = charToFloat(p, iStartNum, iEndNum);
 						rawMat.getTokens(pSubExp[iCurSub].exp, pSubExp);
 						bIsSubExp = false;
-						pSubExp[iCurSub].result = rawMat.getResult(rawMat.opOperations, rawMat.fOperands, &(rawMat.iCountDigits));
+						pSubExp[iCurSub].result = rawMat.getResult();
 					}
 					fOperands[iOperandsPos] = pSubExp[iCurSub].result;
 				}
@@ -204,11 +204,11 @@ float raw_materials::getResult()
 
     // Do multiple and division
     doOperationGroup(cOperationSymb, cPriority1Sz, iProcDigits);
-    if (iProcDigits == *pCountDigits - 1) return *(pOperands);
+    if (iProcDigits == iCountDigits - 1) return fOperands[0];
     // Do plus and minus
     doOperationGroup(cOperationSymb, cPriority2Sz,iProcDigits);
 	// The result is always on first member of pOperands, so we just need to return pointer value of pOperands pointer
-	return pOperands[0];
+	return fOperands[0];
 }
 
 
@@ -236,8 +236,8 @@ void raw_materials::doOperationGroup(char *pOperationGroup,const int *pOperation
     for (int i = 0; i < iCountDigits-1; i++){
 		cCurOperation = isInArray(opOperations[i].symbol, pOperationGroup, *(pOperationGroupLim), *(pOperationGroupLim + 1));
         if (cCurOperation) {
-			fOperands[opOperations[i].left_op] = doOperation(fOperands[opOperations[i].left_op],
-                                                                    fOperands[opOperations[i].right_op],cCurOperation);
+			fOperands[opOperations[i].left_op] = opOperations[i].doOperation(fOperands[opOperations[i].left_op],
+																			 fOperands[opOperations[i].right_op]);
 			opOperations[i].processed = 1;
 			iProcDigits += 1;
 			if (iProcDigits != iCountDigits-1)
