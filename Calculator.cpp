@@ -14,7 +14,7 @@ using namespace std;
 
  Also:
  1) Rewrite *(p+i) to p[i]
-
+ 2) Do error validator ( do it after OOP refactoring)
  */
 
 int main()
@@ -52,11 +52,11 @@ void removeWhitesp(char *p)
 	 
 	while (bWtLeft){
 		bWtLeft = false;
-		for (int i = 0; *(p + i); i++) {
-			if (*(p + i) == ' ') {
+		for (int i = 0; p[i]; i++) {
+			if (p[i] == ' ') {
 				bWtLeft = true;
-				for (int k = i; *(p + k); k++) {
-					*(p + k) = *(p + k + 1);
+				for (int k = i; p[k]; k++) {
+					p[k] = p[k+1];
 				}
 			}
 		}
@@ -70,16 +70,16 @@ int getTokens(char *p, float *pOperands, opr *pOperations, int *pCountDigits, in
 	char cSymbols[] = "*/+-", cDigits[] = "0123456789", cSpecialSymbols[] = ".$";
 	bool bIsSubExp = false;
 
-	for (int i = 0; *(p + i); i++) {
+	for (int i = 0; p[i]; i++) {
 
-		if (isInArray(*(p + i), cDigits)) {
+		if (isInArray(p[i], cDigits)) {
 
 			if (iStartNum == -1) iStartNum = i;
 			else iEndNum = i;
 
-			if (isInArray(*(p + i + 1), cSymbols) || !(*(p + i + 1))) {
+			if (isInArray(p[i+1], cSymbols) || !(p[i+1])) {
 				if (iEndNum < iStartNum) iEndNum = iStartNum;
-				if (!bIsSubExp) *(pOperands + iOperandsPos) = charToFloat(p, iStartNum, iEndNum);
+				if (!bIsSubExp) pOperands[iOperandsPos] = charToFloat(p, iStartNum, iEndNum);
 				else
 				{
 					int iCurSub;
@@ -95,25 +95,25 @@ int getTokens(char *p, float *pOperands, opr *pOperations, int *pCountDigits, in
 						bIsSubExp = false;
 						pSubExp[iCurSub].result = getResult(opOperations, fOperands, &iCountDigits);
 					}
-					*(pOperands + iOperandsPos) = pSubExp[iCurSub].result;
+					pOperands[iOperandsPos] = pSubExp[iCurSub].result;
 				}
 				(*pCountDigits)++;
 			} 
 
 		}
-		else if (isInArray(*(p + i), cSymbols)) {
+		else if (isInArray(p[i], cSymbols)) {
 
 			if (iStartNum != -1) { 
 				iStartNum = -1;
 				iOperandsPos++;
 			}
-			(pOperations + iOperationsPos)->symbol = *(p + i);
-			(pOperations + iOperationsPos)->left_op = iOperationsPos;
-			(pOperations + iOperationsPos)->right_op = iOperationsPos + 1;
+			pOperations[iOperationsPos].symbol = p[i];
+			pOperations[iOperationsPos].left_op = iOperationsPos;
+			pOperations[iOperationsPos].right_op = iOperationsPos + 1;
 			iOperationsPos++;
 			(*pCountSymbols)++;
 		}
-		else if (isInArray(*(p + i), cSpecialSymbols)) {
+		else if (isInArray(p[i], cSpecialSymbols)) {
 			switch (p[i])
 			{
 				case '.':
@@ -126,7 +126,7 @@ int getTokens(char *p, float *pOperands, opr *pOperations, int *pCountDigits, in
 			
 		}
 		else {
-			cout << "Error " << *(p + i) << "\n";
+			cout << "Error " << p[i] << "\n";
 			return 1;
 		}
 	}
@@ -141,26 +141,26 @@ char isInArray(char cSymbol, char *pContainer, int iStart, int iEnd )
 {
 	if (iStart == -1 && iEnd == -1)
 	{
-		for (int i = 0; *(pContainer + i); i++) {
-			if (cSymbol == *(pContainer + i)) return cSymbol;
+		for (int i = 0; pContainer[i]; i++) {
+			if (cSymbol == pContainer[i]) return cSymbol;
 		}
 	}
 	else if (iStart != -1 && iEnd == -1)
 	{
-		for (int i = iStart; *(pContainer + i); i++) {
-			if (cSymbol == *(pContainer + i)) return cSymbol;
+		for (int i = iStart; pContainer[i]; i++) {
+			if (cSymbol == pContainer[i]) return cSymbol;
 		}
 	}
 	else if (iStart == -1 && iEnd != -1)
 	{
-		for (int i = 0; i < iEnd && *(pContainer + i); i++) {
-			if (cSymbol == *(pContainer + i)) return cSymbol;
+		for (int i = 0; i < iEnd && pContainer[i]; i++) {
+			if (cSymbol == pContainer[i]) return cSymbol;
 		}
 	}
 	else
 	{
-		for (int i = iStart; i < iEnd && *(pContainer + i); i++) {
-			if (cSymbol == *(pContainer + i)) return cSymbol;
+		for (int i = iStart; i < iEnd && pContainer[i]; i++) {
+			if (cSymbol == pContainer[i]) return cSymbol;
 		}
 	};
 	
@@ -175,11 +175,11 @@ float charToFloat(char *p, int iStartNum, int iEndNum)
 	bool bAfterPoint = false;
 
 	for (int i = iStartNum; i <= iEndNum; i++) {
-		if (*(p + i) == '.') {
+		if (p[i] == '.') {
 			bAfterPoint = true;
 			continue;
 		}
-		fCurNum = (float)*(p + i);
+		fCurNum = (float)p[i];
 		fCurNum = fCurNum - 48;
 		switch (bAfterPoint)
 		{
@@ -210,6 +210,7 @@ float getResult(opr *pOperations, float *pOperands, int *pCountDigits)
     if (iProcDigits == *pCountDigits - 1) return *(pOperands);
     // Do plus and minus
     doOperationGroup(pOperations, pOperands, cOperationSymb, cPriority2Sz, pCountDigits, iProcDigits);
+	// The result is always on first member of pOperands, so we just need to return pointer value of pOperands pointer
 	return *(pOperands);
 }
 
@@ -232,22 +233,23 @@ float doOperation(float fOperandL, float fOperandR, char cOperation)
 }
 
 
-void doOperationGroup(opr *pOperations, float *pOperands, char *pOperationGroup,const int *pOperationGroupLim, int *pCountDigits, int &iProcDigits)
+void doOperationGroup(opr *pOperations, float *pOperands, char *pOperationGroup,const int *pOperationGroupLim,
+					  int *pCountDigits, int &iProcDigits)
 {
     char cCurOperation = '\0';
     for (int i = 0; i < *pCountDigits-1; i++){
-		cCurOperation = isInArray((pOperations + i)->symbol, pOperationGroup, *(pOperationGroupLim), *(pOperationGroupLim + 1));
+		cCurOperation = isInArray(pOperations[i].symbol, pOperationGroup, *(pOperationGroupLim), *(pOperationGroupLim + 1));
         if (cCurOperation) {
-			*(pOperands + (pOperations + i)->left_op) = doOperation(*(pOperands + (pOperations + i)->left_op),
-                                                                    *(pOperands + (pOperations + i) ->right_op),cCurOperation);
-			(pOperations + i)->processed = 1;
+			pOperands[pOperations[i].left_op] = doOperation(pOperands[pOperations[i].left_op],
+                                                                    pOperands[pOperations[i].right_op],cCurOperation);
+			pOperations[i].processed = 1;
 			iProcDigits += 1;
 			if (iProcDigits != *(pCountDigits)-1)
 			{
 				int z = i + 1;
 				// Check left operand index, which is not changed, if it is last operation
-				while ((pOperations + z)->processed && ((pOperations + z)->right_op + 1 != *pCountDigits)) z++;
-				(pOperations + z)->left_op = (pOperations + i)->left_op;
+				while (pOperations[z].processed && (pOperations[z].right_op + 1 != *pCountDigits)) z++;
+				pOperations[z].left_op = pOperations[i].left_op;
 			};
         }
     }
@@ -260,33 +262,31 @@ void splitOnSubExp(subexp *pSubExp, char *pRaw)
 	char cCharDigit[iDigitSize];
 	int iCurLevel = 0, iLastPr = 0, iPrevK;
 
-	for (int i = 0, k = 0, iDelta = 0, iIndex = 0; *(pRaw + i); i++){
+	for (int i = 0, k = 0, iDelta = 0, iIndex = 0; pRaw[i]; i++){
 		iIndex = i - iDelta;
-		switch (*(pRaw + i))
+		switch (pRaw[i])
 		{
 			case '(':
-				(pSubExp + k)->exp[iIndex] = '$';
-
-				//(pSubExp + k)->exp[iIndex + 1] = '\0';
+				pSubExp[k].exp[iIndex] = '$';
 				iCurLevel++;
 				iDelta = i + 1;
 				iPrevK = k;
 				k = iLastPr;
 				iLastPr++;
 				k++;
-				(pSubExp + k)->level = iCurLevel;
+				pSubExp[k].level = iCurLevel;
 				floatToChar((float)k, cCharDigit);
-				concatStr((pSubExp + iPrevK)->exp, cCharDigit);
+				concatStr(pSubExp[iPrevK].exp, cCharDigit);
 				break;
 			case ')':
-				(pSubExp + k)->exp[iIndex] = '\0';
+				pSubExp[k].exp[iIndex] = '\0';
 				k = (getParent(pSubExp, k) != -1) ? getParent(pSubExp, k) : 0;
-				// We increase iDelta on 2 becouse we need to think NEXT iteration and not count '\0' symbol
-				iDelta = i + 2 - getStrLen((pSubExp + k)->exp);
+				// We increase iDelta on 2 because we need to think NEXT iteration and not count '\0' symbol
+				iDelta = i + 2 - getStrLen(pSubExp[k].exp);
 				iCurLevel--;
 				break;
 			default:
-				(pSubExp + k)->exp[iIndex] = *(pRaw + i);
+				pSubExp[k].exp[iIndex] = pRaw[i];
 		}
 	}
 }
@@ -295,7 +295,7 @@ void splitOnSubExp(subexp *pSubExp, char *pRaw)
 int getStrLen(char *p)
 {
 	int i = 0;
-	while (*(p+i)) i++;
+	while (p[i]) i++;
 	return i + 1;
 }
 
@@ -305,7 +305,7 @@ int getParent(subexp *pSubExp, int iChildInd)
 	// Return index of parent element. If no parent element return "-1"
 	for (int i = iChildInd - 1; i > 0; i--)
 	{
-		if ((pSubExp + i)->level+1 == (pSubExp + iChildInd)->level) return i;
+		if (pSubExp[i].level+1 == pSubExp[iChildInd].level) return i;
 	}
 
 	return -1;
