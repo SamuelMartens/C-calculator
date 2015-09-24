@@ -6,34 +6,51 @@
 const int SZ_RAW_STRING = 80;
 const int SZ_GLOBAL_SIZE = 20;
 
-struct opr {
+class opr {
+public:
     char symbol;
     char processed = 0;
     int left_op;
     int right_op;
+
+    float doOperation(float fOperandL, float fOperandR);
 };
 
-struct subexp {
-    // This size must be the same as in szRawString
+class subexp {
+public:
+    // Use contstructor instead default value
     char exp[SZ_RAW_STRING] = "\0";
     int level = 0;
     float result;
 };
 
+class raw_string{
+public:
+    char cRawString[SZ_RAW_STRING];
 
-// ivan: it would be better to move all function declarations to separated header file
-void removeWhitesp(char *p);
-void splitOnSubExp(subexp *pSubExp, char *pRawString);
-void doOperationGroup(opr *pOperations, float *pOperands, char *pOperationGroup, const int *pOperationGroupLim, int *pCountDigits, int &iProcDigits);
-int getTokens(char *p, float *pOperands, opr *pOperations, int *pCountDigits, int *pCountSymbols, subexp *pSubExp);
+    void removeWhitesp();
+    void splitOnSubExp(subexp *pSubExp);
+};
+
+class raw_materials{
+public:
+    int iCountDigits;
+    int iCountSymbols;
+    float fOperands[SZ_GLOBAL_SIZE];
+    opr opOperations[SZ_GLOBAL_SIZE];
+
+    raw_materials() {iCountDigits = 0; iCountSymbols = 0;};
+    int getTokens(char *p, subexp *pSubExp);
+    void doOperationGroup(char *pOperationGroup, const int *pOperationGroupLim, int &iProcDigits);
+    float getResult();
+};
+
+
 int getStrLen(char *p);
 int getParent(subexp *pSubExp, int iChildInd);
 int floatToChar(float fDigit, char *pCharDigit, const int iDigitSize=8);
 int concatStr(char *pOriginS, char *pAdditStr);
-float getResult(opr *pOperations, float *pOperands, int *pCountDigits);
-float doOperation(float fOperandL, float fOperandR, char cOperation);
 float charToFloat(char *p, int iStartNum, int iEndNum);
-
 char isInArray(char cSymbol,char *pContainer, int iStart = -1, int iEnd = -1);
 
 #endif //C_CALCULATOR_CALC_H

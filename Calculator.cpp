@@ -13,50 +13,49 @@ using namespace std;
  3) Token keeper class
 
  Also:
- 1) Rewrite *(p+i) to p[i]
+ 1) Rewrite *(p+i) to p[i] (Done)
  2) Do error validator ( do it after OOP refactoring)
  */
 
 int main()
 {
-	char cRawString[SZ_RAW_STRING];
-	float fOperands[SZ_GLOBAL_SIZE], fResult;
-	int iCountDigits=0, iCountSymbols=0;
+	raw_string rawString;
+	raw_materials rawMat;
+	float fResult;
 	int iError = 0;
-	opr opOperations[SZ_GLOBAL_SIZE];
 	subexp suSubExp[SZ_GLOBAL_SIZE];
 
 	cout << "Print your equation: ";
-	fgets(cRawString, SZ_RAW_STRING, stdin);
-	cRawString[getStrLen(cRawString)-2] = '\0';
+	fgets(rawString.cRawString, SZ_RAW_STRING, stdin);
+	rawString.cRawString[getStrLen(rawString.cRawString)-2] = '\0';
 
-	removeWhitesp(cRawString);
-	splitOnSubExp(suSubExp, cRawString);
-	iError = getTokens(suSubExp[0].exp, fOperands, opOperations, &iCountDigits, &iCountSymbols, suSubExp);
+	rawString.removeWhitesp();
+	rawString.splitOnSubExp(suSubExp);
+	iError = rawMat.getTokens(suSubExp[0].exp, suSubExp);
 	if (iError != 0) {
 		cout << "Error in your equation";
 		return 1;
 	}
 
-	fResult = getResult(opOperations, fOperands, &iCountDigits);
+	fResult = rawMat.getResult();
 	cout << "Result " << fResult << "\n";
 
 	return 0;
 }
 
 
-void removeWhitesp(char *p)
-{	
+void raw_string::removeWhitesp()
+{
 	char cNext;
 	bool bWtLeft = true;
-	 
+
 	while (bWtLeft){
 		bWtLeft = false;
-		for (int i = 0; p[i]; i++) {
-			if (p[i] == ' ') {
+		for (int i = 0;  cRawString[i]; i++) {
+			if ( cRawString[i] == ' ') {
 				bWtLeft = true;
-				for (int k = i; p[k]; k++) {
-					p[k] = p[k+1];
+				for (int k = i;  cRawString[k]; k++) {
+					cRawString[k] =  cRawString[k+1];
 				}
 			}
 		}
@@ -64,7 +63,7 @@ void removeWhitesp(char *p)
 }
 
 
-int getTokens(char *p, float *pOperands, opr *pOperations, int *pCountDigits, int *pCountSymbols, subexp *pSubExp )
+int raw_materials::getTokens(char *p, subexp *pSubExp )
 {
 	int iStartNum = -1, iEndNum = 0, iOperandsPos = 0, iOperationsPos = 0;
 	char cSymbols[] = "*/+-", cDigits[] = "0123456789", cSpecialSymbols[] = ".$";
@@ -79,25 +78,23 @@ int getTokens(char *p, float *pOperands, opr *pOperations, int *pCountDigits, in
 
 			if (isInArray(p[i+1], cSymbols) || !(p[i+1])) {
 				if (iEndNum < iStartNum) iEndNum = iStartNum;
-				if (!bIsSubExp) pOperands[iOperandsPos] = charToFloat(p, iStartNum, iEndNum);
+				if (!bIsSubExp) fOperands[iOperandsPos] = charToFloat(p, iStartNum, iEndNum);
 				else
 				{
 					int iCurSub;
 					{
 						// Initialize separate parameters in this block
-						float fOperands[SZ_GLOBAL_SIZE];
-						opr opOperations[SZ_GLOBAL_SIZE];
-						int iCountDigits = 0, iCountSymbols = 0;
+						raw_materials rawMat;
 						
 						// Here i will catch last error
 						iCurSub = charToFloat(p, iStartNum, iEndNum);
-						getTokens(pSubExp[iCurSub].exp, fOperands, opOperations, &iCountDigits, &iCountSymbols, pSubExp);
+						rawMat.getTokens(pSubExp[iCurSub].exp, pSubExp);
 						bIsSubExp = false;
-						pSubExp[iCurSub].result = getResult(opOperations, fOperands, &iCountDigits);
+						pSubExp[iCurSub].result = rawMat.getResult(rawMat.opOperations, rawMat.fOperands, &(rawMat.iCountDigits));
 					}
-					pOperands[iOperandsPos] = pSubExp[iCurSub].result;
+					fOperands[iOperandsPos] = pSubExp[iCurSub].result;
 				}
-				(*pCountDigits)++;
+				iCountDigits++;
 			} 
 
 		}
@@ -107,11 +104,11 @@ int getTokens(char *p, float *pOperands, opr *pOperations, int *pCountDigits, in
 				iStartNum = -1;
 				iOperandsPos++;
 			}
-			pOperations[iOperationsPos].symbol = p[i];
-			pOperations[iOperationsPos].left_op = iOperationsPos;
-			pOperations[iOperationsPos].right_op = iOperationsPos + 1;
+			opOperations[iOperationsPos].symbol = p[i];
+			opOperations[iOperationsPos].left_op = iOperationsPos;
+			opOperations[iOperationsPos].right_op = iOperationsPos + 1;
 			iOperationsPos++;
-			(*pCountSymbols)++;
+			iCountSymbols++;
 		}
 		else if (isInArray(p[i], cSpecialSymbols)) {
 			switch (p[i])
@@ -131,7 +128,7 @@ int getTokens(char *p, float *pOperands, opr *pOperations, int *pCountDigits, in
 		}
 	}
 
-	if (*pCountDigits - *pCountSymbols != 1 || *pCountDigits < 2) return 1;
+	if (iCountDigits - iCountSymbols != 1 || iCountDigits < 2) return 1;
 
 	return 0;
 }
@@ -198,7 +195,7 @@ float charToFloat(char *p, int iStartNum, int iEndNum)
 }
 
 
-float getResult(opr *pOperations, float *pOperands, int *pCountDigits)
+float raw_materials::getResult()
 {
 	const int iOperSz = 5, cPriority1Sz[] = {0, 2}, cPriority2Sz[] = {2, 4};
     char cOperationSymb[iOperSz] = "*/+-";
@@ -206,18 +203,18 @@ float getResult(opr *pOperations, float *pOperands, int *pCountDigits)
     char cPartString[iOperSz];
 
     // Do multiple and division
-    doOperationGroup(pOperations, pOperands, cOperationSymb, cPriority1Sz, pCountDigits, iProcDigits);
+    doOperationGroup(cOperationSymb, cPriority1Sz, iProcDigits);
     if (iProcDigits == *pCountDigits - 1) return *(pOperands);
     // Do plus and minus
-    doOperationGroup(pOperations, pOperands, cOperationSymb, cPriority2Sz, pCountDigits, iProcDigits);
+    doOperationGroup(cOperationSymb, cPriority2Sz,iProcDigits);
 	// The result is always on first member of pOperands, so we just need to return pointer value of pOperands pointer
-	return *(pOperands);
+	return pOperands[0];
 }
 
 
-float doOperation(float fOperandL, float fOperandR, char cOperation)
+float opr::doOperation(float fOperandL, float fOperandR)
 {
-	switch (cOperation)
+	switch (symbol)
 	{
 		case '+':
 			return fOperandL + fOperandR;
@@ -233,38 +230,37 @@ float doOperation(float fOperandL, float fOperandR, char cOperation)
 }
 
 
-void doOperationGroup(opr *pOperations, float *pOperands, char *pOperationGroup,const int *pOperationGroupLim,
-					  int *pCountDigits, int &iProcDigits)
+void raw_materials::doOperationGroup(char *pOperationGroup,const int *pOperationGroupLim, int &iProcDigits)
 {
     char cCurOperation = '\0';
-    for (int i = 0; i < *pCountDigits-1; i++){
-		cCurOperation = isInArray(pOperations[i].symbol, pOperationGroup, *(pOperationGroupLim), *(pOperationGroupLim + 1));
+    for (int i = 0; i < iCountDigits-1; i++){
+		cCurOperation = isInArray(opOperations[i].symbol, pOperationGroup, *(pOperationGroupLim), *(pOperationGroupLim + 1));
         if (cCurOperation) {
-			pOperands[pOperations[i].left_op] = doOperation(pOperands[pOperations[i].left_op],
-                                                                    pOperands[pOperations[i].right_op],cCurOperation);
-			pOperations[i].processed = 1;
+			fOperands[opOperations[i].left_op] = doOperation(fOperands[opOperations[i].left_op],
+                                                                    fOperands[opOperations[i].right_op],cCurOperation);
+			opOperations[i].processed = 1;
 			iProcDigits += 1;
-			if (iProcDigits != *(pCountDigits)-1)
+			if (iProcDigits != iCountDigits-1)
 			{
 				int z = i + 1;
 				// Check left operand index, which is not changed, if it is last operation
-				while (pOperations[z].processed && (pOperations[z].right_op + 1 != *pCountDigits)) z++;
-				pOperations[z].left_op = pOperations[i].left_op;
+				while (opOperations[z].processed && (opOperations[z].right_op + 1 != iCountDigits)) z++;
+				opOperations[z].left_op = opOperations[i].left_op;
 			};
         }
     }
 }
 
 
-void splitOnSubExp(subexp *pSubExp, char *pRaw)
+void raw_string::splitOnSubExp(subexp *pSubExp)
 {
 	const int iDigitSize = 8;
 	char cCharDigit[iDigitSize];
 	int iCurLevel = 0, iLastPr = 0, iPrevK;
 
-	for (int i = 0, k = 0, iDelta = 0, iIndex = 0; pRaw[i]; i++){
+	for (int i = 0, k = 0, iDelta = 0, iIndex = 0; cRawString[i]; i++){
 		iIndex = i - iDelta;
-		switch (pRaw[i])
+		switch (cRawString[i])
 		{
 			case '(':
 				pSubExp[k].exp[iIndex] = '$';
@@ -286,7 +282,7 @@ void splitOnSubExp(subexp *pSubExp, char *pRaw)
 				iCurLevel--;
 				break;
 			default:
-				pSubExp[k].exp[iIndex] = pRaw[i];
+				pSubExp[k].exp[iIndex] = cRawString[i];
 		}
 	}
 }
