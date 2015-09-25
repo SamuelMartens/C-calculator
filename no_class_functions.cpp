@@ -1,3 +1,5 @@
+#include <math.h>
+#include "calc.h"
 
 char isInArray(char cSymbol, char *pContainer, int iStart, int iEnd )
 {

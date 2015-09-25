@@ -1,3 +1,5 @@
+#include "calc.h"
+using namespace std;
 
 // RAW_STRING
 void raw_string::removeWhitesp()
@@ -18,18 +20,24 @@ void raw_string::removeWhitesp()
     }
 }
 
-int raw_string::checkParentheses()
+int raw_string::validateParentheses()
 {
+    // Check parentless and also check operation symbol before open parentheses
+    // and digits before closed parentheses
+
     int iOpened = 0, iClosed = 0;
+    char cSymbols[] = "*/+-", cDigits[] = "0123456789";
     for (int i=0; cRawString[i];i++ )
     {
         switch (cRawString[i])
         {
             case '(':
                 iOpened += 1;
+                if (i!=0 && cRawString[i-1]!='(' && !(isInArray(cRawString[i-1],cSymbols))) return 1;
                 break;
             case ')':
                 iClosed += 1;
+                if (i!=0 && cRawString[i-1]!='(' && !(isInArray(cRawString[i-1],cDigits))) return 1;
                 if (iClosed>iOpened) return 1;
                 break;
             default:
@@ -42,6 +50,7 @@ int raw_string::checkParentheses()
 
     return 0;
 }
+
 
 void raw_string::splitOnSubExp(subexp *pSubExp)
 {
@@ -112,6 +121,8 @@ int raw_materials::getTokens(char *p, subexp *pSubExp )
             else iEndNum = i;
 
             if (isInArray(p[i+1], cSymbols) || !(p[i+1])) {
+                // Validate that no dublicate symbols
+                if (i > 0 && isInArray(p[i-1],cSymbols)) return 1;
                 if (iEndNum < iStartNum) iEndNum = iStartNum;
                 if (!bIsSubExp) fOperands[iOperandsPos] = charToFloat(p, iStartNum, iEndNum);
                 else
@@ -158,7 +169,6 @@ int raw_materials::getTokens(char *p, subexp *pSubExp )
 
         }
         else {
-            cout << "Syntax error: " << p[i] << "\n";
             return 1;
         }
     }

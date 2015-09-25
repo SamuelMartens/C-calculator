@@ -1,10 +1,10 @@
 /*Create simple calculator*/
 
-#include <iostream>
 #include <cstdio>
-#include <math.h>
 #include "calc.h"
 using namespace std;
+
+int LAST_ERROR = 0;
 
 /*
 
@@ -26,9 +26,9 @@ int main()
 	rawString.cRawString[getStrLen(rawString.cRawString)-2] = '\0';
 
 	rawString.removeWhitesp();
-	LAST_ERROR = rawString.checkParentheses();
+	LAST_ERROR = rawString.validateParentheses();
 	if (LAST_ERROR != 0) {
-		cout << "Parentheses error \n";
+		cout << "Syntax error \n";
 		return 1;
 	}
 	rawString.splitOnSubExp(suSubExp);

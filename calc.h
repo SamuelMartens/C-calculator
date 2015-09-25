@@ -1,11 +1,14 @@
 
+#include <iostream>
+
 
 #ifndef C_CALCULATOR_CALC_H
 #define C_CALCULATOR_CALC_H
 
+
 const int SZ_RAW_STRING = 80;
 const int SZ_GLOBAL_SIZE = 20;
-int LAST_ERROR = 0;
+
 
 class opr {
 public:
@@ -32,7 +35,8 @@ public:
 
     void removeWhitesp();
     void splitOnSubExp(subexp *pSubExp);
-    int checkParentheses();
+    int validateParentheses();
+    int validateOperations();
 };
 
 class raw_materials{
