@@ -5,21 +5,23 @@
 
 const int SZ_RAW_STRING = 80;
 const int SZ_GLOBAL_SIZE = 20;
+int LAST_ERROR = 0;
 
 class opr {
 public:
     char symbol;
-    char processed = 0;
+    char processed;
     int left_op;
     int right_op;
 
+    opr() {processed = 0;};
     float doOperation(float fOperandL, float fOperandR);
 };
 
 class subexp {
 public:
     // Use contstructor instead default value
-    char exp[SZ_RAW_STRING] = "\0";
+    char exp[SZ_RAW_STRING]="\0";
     int level = 0;
     float result;
 };
@@ -30,6 +32,7 @@ public:
 
     void removeWhitesp();
     void splitOnSubExp(subexp *pSubExp);
+    int checkParentheses();
 };
 
 class raw_materials{

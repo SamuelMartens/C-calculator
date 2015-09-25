@@ -7,14 +7,11 @@
 using namespace std;
 
 /*
- What class should i create?
- 1) Raw string class
- 2) Operation class
- 3) Token keeper class
 
- Also:
- 1) Rewrite *(p+i) to p[i] (Done)
- 2) Do error validator ( do it after OOP refactoring)
+Validation do:
+ 1) Check dublicated operations
+ 2) Check if the operation presents between operands and parentheses
+
  */
 
 int main()
@@ -22,7 +19,6 @@ int main()
 	raw_string rawString;
 	raw_materials rawMat;
 	float fResult;
-	int iError = 0;
 	subexp suSubExp[SZ_GLOBAL_SIZE];
 
 	cout << "Print your equation: ";
@@ -30,10 +26,15 @@ int main()
 	rawString.cRawString[getStrLen(rawString.cRawString)-2] = '\0';
 
 	rawString.removeWhitesp();
+	LAST_ERROR = rawString.checkParentheses();
+	if (LAST_ERROR != 0) {
+		cout << "Parentheses error \n";
+		return 1;
+	}
 	rawString.splitOnSubExp(suSubExp);
-	iError = rawMat.getTokens(suSubExp[0].exp, suSubExp);
-	if (iError != 0) {
-		cout << "Error in your equation";
+	LAST_ERROR = rawMat.getTokens(suSubExp[0].exp, suSubExp);
+	if (LAST_ERROR != 0) {
+		cout << "Syntax error \n";
 		return 1;
 	}
 
@@ -62,6 +63,30 @@ void raw_string::removeWhitesp()
 	}
 }
 
+int raw_string::checkParentheses()
+{
+	int iOpened = 0, iClosed = 0;
+	for (int i=0; cRawString[i];i++ )
+	{
+		switch (cRawString[i])
+		{
+			case '(':
+				iOpened += 1;
+				break;
+			case ')':
+				iClosed += 1;
+				if (iClosed>iOpened) return 1;
+				break;
+			default:
+				continue;
+
+		}
+	}
+
+	if (iClosed != iOpened) return 1;
+
+	return 0;
+}
 
 int raw_materials::getTokens(char *p, subexp *pSubExp )
 {
@@ -123,7 +148,7 @@ int raw_materials::getTokens(char *p, subexp *pSubExp )
 			
 		}
 		else {
-			cout << "Error " << p[i] << "\n";
+			cout << "Syntax error: " << p[i] << "\n";
 			return 1;
 		}
 	}
