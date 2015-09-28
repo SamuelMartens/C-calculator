@@ -62,9 +62,6 @@ float charToFloat(char *p, int iStartNum, int iEndNum)
 }
 
 
-
-
-
 int getStrLen(char *p)
 {
     int i = 0;
@@ -112,4 +109,28 @@ int concatStr(char *pOriginS, char *pAdditStr)
     for (int i = getStrLen(pOriginS)-1, k=0;k < iAdditLen;k++,i++) pOriginS[i]=pAdditStr[k];
 
     return 0;
+}
+
+
+int charToInt(char *p, int iStartNum, int iEndNum)
+{
+	int iCurNum, iFinalNum = 0;
+
+	for (int i = iStartNum; i <= iEndNum; i++)
+	{
+		iCurNum = (int)p[i];
+		iCurNum = iCurNum - 48;
+		iFinalNum = iFinalNum * 10 + iCurNum;
+	}
+
+	return iFinalNum;
+}
+
+
+bool isChar(char cSymbol)
+{
+	int iCharCode = (int)cSymbol;
+	if (iCharCode < 97 || iCharCode > 122) return false;
+
+	return true;
 }

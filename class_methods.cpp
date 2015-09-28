@@ -1,10 +1,8 @@
 #include "calc.h"
-using namespace std;
 
 // RAW_STRING
 void raw_string::removeWhitesp()
 {
-    char cNext;
     bool bWtLeft = true;
 
     while (bWtLeft){
@@ -20,6 +18,15 @@ void raw_string::removeWhitesp()
     }
 }
 
+
+int raw_string::validateAll()
+{
+	// Run all validators of this class
+	if (!(validateParentheses()) && !(validateSpecialSymbols())) return 0;
+	return 1;
+}
+
+
 int raw_string::validateParentheses()
 {
     // Check parentless and also check operation symbol before open parentheses
@@ -34,10 +41,12 @@ int raw_string::validateParentheses()
             case '(':
                 iOpened += 1;
                 if (i!=0 && cRawString[i-1]!='(' && !(isInArray(cRawString[i-1],cSymbols))) return 1;
+				if (cRawString[i + 1] && !(isInArray(cRawString[i + 1], cDigits))) return 1;
                 break;
             case ')':
                 iClosed += 1;
-                if (i!=0 && cRawString[i-1]!='(' && !(isInArray(cRawString[i-1],cDigits))) return 1;
+                if (i!=0 && cRawString[i-1]!=')' && !(isInArray(cRawString[i-1],cDigits))) return 1;
+				if (cRawString[i + 1] && cRawString[i + 1] != ')' && !(isInArray(cRawString[i + 1], cSymbols))) return 1;
                 if (iClosed>iOpened) return 1;
                 break;
             default:
@@ -47,10 +56,21 @@ int raw_string::validateParentheses()
     }
 
     if (iClosed != iOpened) return 1;
-
     return 0;
 }
 
+int raw_string::validateSpecialSymbols()
+{
+	// Looks that some symbols, should not present is expression
+	char cSpecialSymbols[] = "$";
+
+	for (int i = 0; cRawString[i]; i++)
+	{
+		if (isInArray(cRawString[i], cSpecialSymbols)) return 1;
+	};
+
+	return 0;
+}
 
 void raw_string::splitOnSubExp(subexp *pSubExp)
 {
@@ -114,26 +134,24 @@ int raw_materials::getTokens(char *p, subexp *pSubExp )
     bool bIsSubExp = false;
 
     for (int i = 0; p[i]; i++) {
-
         if (isInArray(p[i], cDigits)) {
 
             if (iStartNum == -1) iStartNum = i;
             else iEndNum = i;
 
             if (isInArray(p[i+1], cSymbols) || !(p[i+1])) {
-                // Validate that no dublicate symbols
-                if (i > 0 && isInArray(p[i-1],cSymbols)) return 1;
+                
                 if (iEndNum < iStartNum) iEndNum = iStartNum;
                 if (!bIsSubExp) fOperands[iOperandsPos] = charToFloat(p, iStartNum, iEndNum);
                 else
                 {
-                    int iCurSub;
+					int iCurSub;
                     {
                         // Initialize separate parameters in this block
                         raw_materials rawMat;
 
                         // Here i will catch last error
-                        iCurSub = charToFloat(p, iStartNum, iEndNum);
+                        iCurSub = charToInt(p, iStartNum, iEndNum);
                         rawMat.getTokens(pSubExp[iCurSub].exp, pSubExp);
                         bIsSubExp = false;
                         pSubExp[iCurSub].result = rawMat.getResult();
@@ -145,6 +163,9 @@ int raw_materials::getTokens(char *p, subexp *pSubExp )
 
         }
         else if (isInArray(p[i], cSymbols)) {
+
+			// Validate that no dublicate symbols
+			if (i > 0 && isInArray(p[i - 1], cSymbols)) return 1; 
 
             if (iStartNum != -1) {
                 iStartNum = -1;
@@ -172,9 +193,7 @@ int raw_materials::getTokens(char *p, subexp *pSubExp )
             return 1;
         }
     }
-
     if (iCountDigits - iCountSymbols != 1 || iCountDigits < 2) return 1;
-
     return 0;
 }
 
@@ -183,7 +202,7 @@ float raw_materials::getResult()
     const int iOperSz = 5, cPriority1Sz[] = {0, 2}, cPriority2Sz[] = {2, 4};
     char cOperationSymb[iOperSz] = "*/+-";
     int iProcDigits = 0;
-    char cPartString[iOperSz];
+ //   char cPartString[iOperSz];
 
     // Do multiple and division
     doOperationGroup(cOperationSymb, cPriority1Sz, iProcDigits);

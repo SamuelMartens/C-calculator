@@ -35,8 +35,9 @@ public:
 
     void removeWhitesp();
     void splitOnSubExp(subexp *pSubExp);
+	int validateAll();
     int validateParentheses();
-    int validateOperations();
+	int validateSpecialSymbols();
 };
 
 class raw_materials{
@@ -52,12 +53,15 @@ public:
     float getResult();
 };
 
-
 int getStrLen(char *p);
 int getParent(subexp *pSubExp, int iChildInd);
 int floatToChar(float fDigit, char *pCharDigit, const int iDigitSize=8);
 int concatStr(char *pOriginS, char *pAdditStr);
+int charToInt(char *p, int iStartNum, int iEndNum);
 float charToFloat(char *p, int iStartNum, int iEndNum);
 char isInArray(char cSymbol,char *pContainer, int iStart = -1, int iEnd = -1);
+bool isChar(char cSymbol);
+
+using namespace std;
 
 #endif //C_CALCULATOR_CALC_H
