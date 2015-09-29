@@ -57,7 +57,7 @@ float charToFloat(char *p, int iStartNum, int iEndNum)
         }
 
     }
-
+ 
     return fFinalNum;
 }
 
@@ -147,6 +147,10 @@ bool isDigit(char cSymbol)
 
 int floatToInt(float fNumber)
 {
-    // FINISH THIS
-    return
+	const int iIntLimits[] = { -2147483647, 2147483647};
+	if (fNumber < iIntLimits[0] || fNumber > iIntLimits[1])
+		cout << "Warning : you try to convert " << fNumber <<" to int, it is out of int limits \n";
+
+	fNumber = trunc(fNumber);
+	return (int)fNumber;
 }

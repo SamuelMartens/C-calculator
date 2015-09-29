@@ -110,7 +110,7 @@ void raw_string::splitOnSubExp(subexp *pSubExp)
 // OPR
 float opr::doOperation(float fOperandL, float fOperandR)
 {
-    switch (symbol)
+	switch (symbol)
     {
         case '+':
             return fOperandL + fOperandR;
@@ -131,44 +131,30 @@ int raw_materials::getTokens(char *p, subexp *pSubExp )
 {
     int iStartNum = -1, iEndNum = 0, iOperandsPos = 0, iOperationsPos = 0;
     char cSymbols[] = "*/+-", cDigits[] = "0123456789", cSpecialSymbols[] = ".$";
-    bool bIsSubExp = false;
+ //   bool bIsSubExp = false;
     parser parParser;
 
     for (int i = 0; p[i]; i++) {
 
-        // Parse digits block
+		// Parse digits block
         if (isDigit(p[i])) {
-
-            if (!bIsSubExp) fOperands[iOperandsPos] = parParser.parseDigit(p,i,true);
-            else
-            {
-                int iCurSub;
-                {
-                    // Initialize separate parameters in this block
-                    raw_materials rawMat;
-                    // WORK MARK
-
-                    // Here i will catch last error
-                    iCurSub = charToInt(p, iStartNum, iEndNum);
-                    rawMat.getTokens(pSubExp[iCurSub].exp, pSubExp);
-                    bIsSubExp = false;
-                    pSubExp[iCurSub].result = rawMat.getResult();
-                }
-                fOperands[iOperandsPos] = pSubExp[iCurSub].result;
-            }
+            fOperands[iOperandsPos] = parParser.parseDigit(p,i,true);
             iCountDigits++;
+			iOperandsPos++;
         }
-
+		// Parse sub expression
+		else if (p[i] == '$') {
+			parParser.parseSubExp(p, i, pSubExp, true);
+			
+			iCountDigits++;
+			iOperandsPos++;
+		}
         // Parse symbols block
         else if (isInArray(p[i], cSymbols)) {
 
 			// Validate that no dublicate symbols
 			if (i > 0 && isInArray(p[i - 1], cSymbols)) return 1; 
 
-            if (iStartNum != -1) {
-                iStartNum = -1;
-                iOperandsPos++;
-            }
             opOperations[iOperationsPos].symbol = p[i];
             opOperations[iOperationsPos].left_op = iOperationsPos;
             opOperations[iOperationsPos].right_op = iOperationsPos + 1;
@@ -184,7 +170,7 @@ int raw_materials::getTokens(char *p, subexp *pSubExp )
                     continue;
                     break;
                 case '$':
-                    bIsSubExp = true;
+                 //   bIsSubExp = true;
                     break;
             }
 
@@ -202,7 +188,6 @@ float raw_materials::getResult()
     const int iOperSz = 5, cPriority1Sz[] = {0, 2}, cPriority2Sz[] = {2, 4};
     char cOperationSymb[iOperSz] = "*/+-";
     int iProcDigits = 0;
- //   char cPartString[iOperSz];
 
     // Do multiple and division
     doOperationGroup(cOperationSymb, cPriority1Sz, iProcDigits);
@@ -234,18 +219,32 @@ void raw_materials::doOperationGroup(char *pOperationGroup,const int *pOperation
     }
 }
 
-
+// PARSER
 float parser::parseDigit(char *p, int &iStartParse, bool bReturnParseIndex)
 {
     // Max len of float digit
-    const int iFloatRange = 9;
+    const int iFloatRange = 8;
     char cDigitStrPart[iFloatRange];
     int i = iStartParse, k = 0;
 
-    for (; p[i] && (isDigit(p[i]) || p[i]=='.');i++, k++)
+
+	for (; p[i] && (isDigit(p[i]) || p[i] == '.'); i++, k++)
         cDigitStrPart[k] = p[i];
+	cDigitStrPart[k] = '\0';
 
-    if (bReturnParseIndex) iStartParse = i;
+    if (bReturnParseIndex) iStartParse = i-1;
 
-    return charToFloat(cDigitStrPart,0,k);
+    return charToFloat(cDigitStrPart,0,k-1);
+}
+
+void parser::parseSubExp(char *p, int &iStartParse, subexp *pSubExp, bool bReturnParseIndex)
+{
+	int iCurSub;
+	raw_materials rawMat;
+
+	iStartParse++;
+	iCurSub = floatToInt(parseDigit(p, iStartParse, true));
+	rawMat.getTokens(pSubExp[iCurSub].exp, pSubExp);
+	pSubExp[iCurSub].result = rawMat.getResult();
+	
 }
