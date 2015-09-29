@@ -143,3 +143,10 @@ bool isDigit(char cSymbol)
 
     return true;
 }
+
+
+int floatToInt(float fNumber)
+{
+    // FINISH THIS
+    return
+}

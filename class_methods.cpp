@@ -139,31 +139,24 @@ int raw_materials::getTokens(char *p, subexp *pSubExp )
         // Parse digits block
         if (isDigit(p[i])) {
 
-            if (iStartNum == -1) iStartNum = i;
-            else iEndNum = i;
-
-            if (isInArray(p[i+1], cSymbols) || !(p[i+1])) {
-                
-                if (iEndNum < iStartNum) iEndNum = iStartNum;
-                if (!bIsSubExp) fOperands[iOperandsPos] = charToFloat(p, iStartNum, iEndNum);
-                else
+            if (!bIsSubExp) fOperands[iOperandsPos] = parParser.parseDigit(p,i,true);
+            else
+            {
+                int iCurSub;
                 {
-					int iCurSub;
-                    {
-                        // Initialize separate parameters in this block
-                        raw_materials rawMat;
+                    // Initialize separate parameters in this block
+                    raw_materials rawMat;
+                    // WORK MARK
 
-                        // Here i will catch last error
-                        iCurSub = charToInt(p, iStartNum, iEndNum);
-                        rawMat.getTokens(pSubExp[iCurSub].exp, pSubExp);
-                        bIsSubExp = false;
-                        pSubExp[iCurSub].result = rawMat.getResult();
-                    }
-                    fOperands[iOperandsPos] = pSubExp[iCurSub].result;
+                    // Here i will catch last error
+                    iCurSub = charToInt(p, iStartNum, iEndNum);
+                    rawMat.getTokens(pSubExp[iCurSub].exp, pSubExp);
+                    bIsSubExp = false;
+                    pSubExp[iCurSub].result = rawMat.getResult();
                 }
-                iCountDigits++;
+                fOperands[iOperandsPos] = pSubExp[iCurSub].result;
             }
-
+            iCountDigits++;
         }
 
         // Parse symbols block
@@ -249,9 +242,10 @@ float parser::parseDigit(char *p, int &iStartParse, bool bReturnParseIndex)
     char cDigitStrPart[iFloatRange];
     int i = iStartParse, k = 0;
 
-    for (; p[i] && isDigit(p[i]);i++, k++)
+    for (; p[i] && (isDigit(p[i]) || p[i]=='.');i++, k++)
         cDigitStrPart[k] = p[i];
 
+    if (bReturnParseIndex) iStartParse = i;
 
     return charToFloat(cDigitStrPart,0,k);
 }
