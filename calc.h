@@ -53,6 +53,12 @@ public:
     float getResult();
 };
 
+class parser{
+public:
+float parseDigit(char *p, int &iStartParse, bool bReturnParseIndex = false);
+
+};
+
 int getStrLen(char *p);
 int getParent(subexp *pSubExp, int iChildInd);
 int floatToChar(float fDigit, char *pCharDigit, const int iDigitSize=8);
@@ -61,6 +67,7 @@ int charToInt(char *p, int iStartNum, int iEndNum);
 float charToFloat(char *p, int iStartNum, int iEndNum);
 char isInArray(char cSymbol,char *pContainer, int iStart = -1, int iEnd = -1);
 bool isChar(char cSymbol);
+bool isDigit(char cSymbol);
 
 using namespace std;
 

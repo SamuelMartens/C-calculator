@@ -134,3 +134,12 @@ bool isChar(char cSymbol)
 
 	return true;
 }
+
+
+bool isDigit(char cSymbol)
+{
+    int iCharCode = (int)cSymbol;
+    if (iCharCode < 48 || iCharCode > 57) return false;
+
+    return true;
+}

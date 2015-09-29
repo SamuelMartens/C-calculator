@@ -132,9 +132,12 @@ int raw_materials::getTokens(char *p, subexp *pSubExp )
     int iStartNum = -1, iEndNum = 0, iOperandsPos = 0, iOperationsPos = 0;
     char cSymbols[] = "*/+-", cDigits[] = "0123456789", cSpecialSymbols[] = ".$";
     bool bIsSubExp = false;
+    parser parParser;
 
     for (int i = 0; p[i]; i++) {
-        if (isInArray(p[i], cDigits)) {
+
+        // Parse digits block
+        if (isDigit(p[i])) {
 
             if (iStartNum == -1) iStartNum = i;
             else iEndNum = i;
@@ -162,6 +165,8 @@ int raw_materials::getTokens(char *p, subexp *pSubExp )
             }
 
         }
+
+        // Parse symbols block
         else if (isInArray(p[i], cSymbols)) {
 
 			// Validate that no dublicate symbols
@@ -177,6 +182,8 @@ int raw_materials::getTokens(char *p, subexp *pSubExp )
             iOperationsPos++;
             iCountSymbols++;
         }
+
+        // Parse special symbols block
         else if (isInArray(p[i], cSpecialSymbols)) {
             switch (p[i])
             {
@@ -232,4 +239,19 @@ void raw_materials::doOperationGroup(char *pOperationGroup,const int *pOperation
             };
         }
     }
+}
+
+
+float parser::parseDigit(char *p, int &iStartParse, bool bReturnParseIndex)
+{
+    // Max len of float digit
+    const int iFloatRange = 9;
+    char cDigitStrPart[iFloatRange];
+    int i = iStartParse, k = 0;
+
+    for (; p[i] && isDigit(p[i]);i++, k++)
+        cDigitStrPart[k] = p[i];
+
+
+    return charToFloat(cDigitStrPart,0,k);
 }
