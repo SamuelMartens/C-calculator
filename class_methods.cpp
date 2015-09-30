@@ -227,10 +227,20 @@ int parser::parseSubExp(char *p, int &iStartParse, subexp *pSubExp, bool bReturn
 	raw_materials rawMat;
 
 	iStartParse++;
-	iCurSub = floatToInt(parseDigit(p, iStartParse, true));
+	iCurSub = floatToInt(parseDigit(p, iStartParse, bReturnParseIndex));
 	rawMat.getTokens(pSubExp[iCurSub].exp, pSubExp);
 	pSubExp[iCurSub].result = rawMat.getResult();
 
 	// we return index of SubExpression which was used 
 	return iCurSub;
+}
+
+float parser::parseBuildInFunc(char *p, int &iStartParse, bool bReturnParseIndex)
+{
+	// in Build in fucn class we will do next signature (*p, StartFunc, EndFunc, FuncArg)
+	// Don't forget about bReturnParseIndex
+	int k = 0;
+
+	for (int i = iStartParse; p[i] && isChar(p[i]); i++, k++);
+
 }
