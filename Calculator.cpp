@@ -7,7 +7,7 @@ int LAST_ERROR = 0;
 
 /* sizeof(int k) return 16 
 Do validation of special symbols such as $
-(5+6)*(11-2/4*(11+1)+12)+(7+2)
+(5+6)*(11-2/4*(11+1)+12)+(7+2) == 196
 */
 
 int main()

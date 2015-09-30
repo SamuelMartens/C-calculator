@@ -56,7 +56,7 @@ public:
 class parser{
 public:
 float parseDigit(char *p, int &iStartParse, bool bReturnParseIndex = false);
-void parseSubExp(char *p, int &iStartParse, subexp *pSubExp ,bool bReturnParseIndex = false);
+int parseSubExp(char *p, int &iStartParse, subexp *pSubExp ,bool bReturnParseIndex = false);
 
 };
 

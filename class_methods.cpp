@@ -131,7 +131,6 @@ int raw_materials::getTokens(char *p, subexp *pSubExp )
 {
     int iStartNum = -1, iEndNum = 0, iOperandsPos = 0, iOperationsPos = 0;
     char cSymbols[] = "*/+-", cDigits[] = "0123456789", cSpecialSymbols[] = ".$";
- //   bool bIsSubExp = false;
     parser parParser;
 
     for (int i = 0; p[i]; i++) {
@@ -144,8 +143,7 @@ int raw_materials::getTokens(char *p, subexp *pSubExp )
         }
 		// Parse sub expression
 		else if (p[i] == '$') {
-			parParser.parseSubExp(p, i, pSubExp, true);
-			
+			fOperands[iOperandsPos] = pSubExp[parParser.parseSubExp(p, i, pSubExp, true)].result;
 			iCountDigits++;
 			iOperandsPos++;
 		}
@@ -160,20 +158,6 @@ int raw_materials::getTokens(char *p, subexp *pSubExp )
             opOperations[iOperationsPos].right_op = iOperationsPos + 1;
             iOperationsPos++;
             iCountSymbols++;
-        }
-
-        // Parse special symbols block
-        else if (isInArray(p[i], cSpecialSymbols)) {
-            switch (p[i])
-            {
-                case '.':
-                    continue;
-                    break;
-                case '$':
-                 //   bIsSubExp = true;
-                    break;
-            }
-
         }
         else {
             return 1;
@@ -237,7 +221,7 @@ float parser::parseDigit(char *p, int &iStartParse, bool bReturnParseIndex)
     return charToFloat(cDigitStrPart,0,k-1);
 }
 
-void parser::parseSubExp(char *p, int &iStartParse, subexp *pSubExp, bool bReturnParseIndex)
+int parser::parseSubExp(char *p, int &iStartParse, subexp *pSubExp, bool bReturnParseIndex)
 {
 	int iCurSub;
 	raw_materials rawMat;
@@ -246,5 +230,7 @@ void parser::parseSubExp(char *p, int &iStartParse, subexp *pSubExp, bool bRetur
 	iCurSub = floatToInt(parseDigit(p, iStartParse, true));
 	rawMat.getTokens(pSubExp[iCurSub].exp, pSubExp);
 	pSubExp[iCurSub].result = rawMat.getResult();
-	
+
+	// we return index of SubExpression which was used 
+	return iCurSub;
 }
