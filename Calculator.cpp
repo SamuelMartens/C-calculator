@@ -14,16 +14,17 @@ int main()
 {
 	raw_string rawString;
 	raw_materials rawMat;
+	string_func strFunc;
 	float fResult;
 	subexp suSubExp[SZ_GLOBAL_SIZE];
 
 	cout << "Print your equation: ";
 	fgets(rawString.cRawString, SZ_RAW_STRING, stdin);
 	
-	rawString.cRawString[getStrLen(rawString.cRawString)-2] = '\0';
+	rawString.cRawString[strFunc.getStrLen(rawString.cRawString)-2] = '\0';
 
 	rawString.removeWhitesp();
-	LAST_ERROR = rawString.validateAll();
+//	LAST_ERROR = rawString.validateAll();
 	if (LAST_ERROR != 0) {
 		cout << "Syntax error \n";
 		fgets(rawString.cRawString, SZ_RAW_STRING, stdin);

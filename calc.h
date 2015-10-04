@@ -56,16 +56,34 @@ public:
 class parser{
 public:
 	float parseDigit(char *p, int &iStartParse, bool bReturnParseIndex = false);
-	float parseBuildInFunc(char *p, int &iStartParse, bool bReturnParseIndex = false);
+	float parseBuildInFunc(char *p, int &iStartParse, subexp *pSubExp, bool bReturnParseIndex = false);
+	// Think about change of the bReturnParseIndex ( maybe remove it and just always true?)
 	int parseSubExp(char *p, int &iStartParse, subexp *pSubExp ,bool bReturnParseIndex = false);
+	void parseFuncArgs(char *p, int &iStartParse, subexp *pSubExp, float *pArgs, int &iArgsNum);
+};
 
+class build_in_func {
+	// Dont forget about zero symbol when correct size
+	char cFuncNames[2][6] = { "abs","power" };
+public:
+	// Staff functions
+	int chooseFunc(char *p);
+	float doFunction(char *pFuncName, float *pArgs, int iArgsNum);
+	// Allowed functions
+	float abs(float fNumber);
+	float power(float fNumber, int iPowerNum);
+};
+
+class string_func {
+public:
+	int concatStr(char *pOriginS, char *pAdditStr);
+	int getStrLen(char *p);
+	bool isSameStr(char *p1, char *p2);
 };
 
 
-int getStrLen(char *p);
 int getParent(subexp *pSubExp, int iChildInd);
 int floatToChar(float fDigit, char *pCharDigit, const int iDigitSize=8);
-int concatStr(char *pOriginS, char *pAdditStr);
 int charToInt(char *p, int iStartNum, int iEndNum);
 int floatToInt(float fNumber);
 float charToFloat(char *p, int iStartNum, int iEndNum);

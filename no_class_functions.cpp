@@ -62,14 +62,6 @@ float charToFloat(char *p, int iStartNum, int iEndNum)
 }
 
 
-int getStrLen(char *p)
-{
-    int i = 0;
-    while (p[i]) i++;
-    return i + 1;
-}
-
-
 int getParent(subexp *pSubExp, int iChildInd)
 {
     // Return index of parent element. If no parent element return "-1"
@@ -102,14 +94,7 @@ int floatToChar(float fDigit, char *pCharDigit, const int iDigitSize)
 }
 
 
-int concatStr(char *pOriginS, char *pAdditStr)
-{
-    int iAdditLen = getStrLen(pAdditStr);
 
-    for (int i = getStrLen(pOriginS)-1, k=0;k < iAdditLen;k++,i++) pOriginS[i]=pAdditStr[k];
-
-    return 0;
-}
 
 
 int charToInt(char *p, int iStartNum, int iEndNum)

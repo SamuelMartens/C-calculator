@@ -40,7 +40,7 @@ int raw_string::validateParentheses()
         {
             case '(':
                 iOpened += 1;
-                if (i!=0 && cRawString[i-1]!='(' && !(isInArray(cRawString[i-1],cSymbols))) return 1;
+                if (i!=0 && cRawString[i-1]!='(' && !(isChar(cRawString[i-1])) && !(isInArray(cRawString[i-1],cSymbols))) return 1;
 				if (cRawString[i + 1] && !(isInArray(cRawString[i + 1], cDigits))) return 1;
                 break;
             case ')':
@@ -77,6 +77,7 @@ void raw_string::splitOnSubExp(subexp *pSubExp)
     const int iDigitSize = 8;
     char cCharDigit[iDigitSize];
     int iCurLevel = 0, iLastPr = 0, iPrevK;
+	string_func strFunc;
 
     for (int i = 0, k = 0, iDelta = 0, iIndex = 0; cRawString[i]; i++){
         iIndex = i - iDelta;
@@ -92,19 +93,26 @@ void raw_string::splitOnSubExp(subexp *pSubExp)
                 k++;
                 pSubExp[k].level = iCurLevel;
                 floatToChar((float)k, cCharDigit);
-                concatStr(pSubExp[iPrevK].exp, cCharDigit);
+                strFunc.concatStr(pSubExp[iPrevK].exp, cCharDigit);
                 break;
             case ')':
                 pSubExp[k].exp[iIndex] = '\0';
                 k = (getParent(pSubExp, k) != -1) ? getParent(pSubExp, k) : 0;
                 // We increase iDelta on 2 because we need to think NEXT iteration and not count '\0' symbol
-                iDelta = i + 2 - getStrLen(pSubExp[k].exp);
+                iDelta = i + 2 - strFunc.getStrLen(pSubExp[k].exp);
                 iCurLevel--;
                 break;
             default:
                 pSubExp[k].exp[iIndex] = cRawString[i];
         }
     }
+
+	//cout << iLastPr << " last \n";
+	// for Debug
+	for (int i = 0; i <= iLastPr; i++)
+	{
+		cout << i << ") " << pSubExp[i].exp << " " << pSubExp[i].level  <<" \n";
+	}
 }
 
 // OPR
@@ -130,7 +138,7 @@ float opr::doOperation(float fOperandL, float fOperandR)
 int raw_materials::getTokens(char *p, subexp *pSubExp )
 {
     int iStartNum = -1, iEndNum = 0, iOperandsPos = 0, iOperationsPos = 0;
-    char cSymbols[] = "*/+-", cDigits[] = "0123456789", cSpecialSymbols[] = ".$";
+    char cSymbols[] = "*/+-", cDigits[] = "0123456789", cSpecialSymbols[] = ".$,";
     parser parParser;
 
     for (int i = 0; p[i]; i++) {
@@ -235,12 +243,131 @@ int parser::parseSubExp(char *p, int &iStartParse, subexp *pSubExp, bool bReturn
 	return iCurSub;
 }
 
-float parser::parseBuildInFunc(char *p, int &iStartParse, bool bReturnParseIndex)
+float parser::parseBuildInFunc(char *p, int &iStartParse, subexp *pSubExp, bool bReturnParseIndex)
 {
 	// in Build in fucn class we will do next signature (*p, StartFunc, EndFunc, FuncArg)
 	// Don't forget about bReturnParseIndex
-	int k = 0;
 
-	for (int i = iStartParse; p[i] && isChar(p[i]); i++, k++);
+	// 1) Найти функцию
+	// 2) Сделать функцию которая будет парсить аргументы функции
+	//	  она же будет возвращать значения и кол-ва аргументов
+	// 3) Передать результаты парсинга функции аргументов обратно парсеру функций
+	// 4) Парсер выбирает какая функция будет выполнена
+	// 5) Выполняет
+	// 6) Возвращает цифру обратно в вызвавшую функцию
+	const int iMaxFuncSize = 20;
+	const int iMaxArgsNum = 6;
+	int k = 0, iArgsNum = 0;
+	float fArgs[iMaxArgsNum];
+	char cFuncName[iMaxFuncSize];
+	build_in_func buildInFunc;
 
+	for (;p[iStartParse] && isChar(p[iStartParse]); iStartParse, k++) 
+	{
+		cFuncName[k] = p[iStartParse];
+	};
+	cFuncName[k + 1] = '\0';
+	parseFuncArgs(p, iStartParse, pSubExp, fArgs, iArgsNum);
+
+	// Нужна функция для валидации подвыражения после функции (типа оно с запятыми и все дела)
+	return buildInFunc.doFunction(cFuncName, fArgs, iArgsNum);
+
+}
+
+void parser::parseFuncArgs(char *p, int &iStartParse, subexp *pSubExp, float *pArgs, int &iArgsNum)
+{
+	for (int i = iStartParse; p[i]; i++)
+	{
+		if (isDigit(p[i])) {
+			pArgs[iArgsNum] = parseDigit(p, i, true);
+		}
+		else if (p[i]==',')
+		{
+			iArgsNum += 1;
+			continue;
+		}
+		else if (p[i]=='$')
+		{
+			pArgs[iArgsNum] = pSubExp[parseSubExp(p, i, pSubExp, true)].result;
+		}
+	}
+
+	iArgsNum += 1;
+}
+
+
+// BUILD_IN_FUNC
+float build_in_func::abs(float fNumber)
+{
+	if (fNumber >= 0) return fNumber;
+	else return fNumber * -1;
+}
+
+float build_in_func::power(float fNumber, int iPowerNum)
+{
+	if (iPowerNum == 0) fNumber=1;
+	else if (iPowerNum > 0)
+	{
+		for (int i = 0; i < iPowerNum; i++) fNumber *= fNumber;
+	}
+	else if (iPowerNum < 0)
+	{
+		for (int i = 0; i < abs((float)iPowerNum); i++) fNumber *= fNumber;
+		fNumber = 1 / fNumber;
+	}
+
+	return fNumber;
+}
+
+int build_in_func::chooseFunc(char *p)
+{
+	string_func strFunc;
+	for (int i = 0; cFuncNames[i]; i++) {
+		if (strFunc.isSameStr(cFuncNames[i], p)) return i;
+	}
+
+	return -1;
+}
+
+float build_in_func::doFunction(char *pFuncName, float *pArgs, int iArgsNum)
+{
+	// Think how to use iArgsNum for validation
+	switch (chooseFunc(pFuncName))
+	{
+	case 0:
+		return abs(pArgs[0]);
+	case 1:
+		return power(pArgs[0], floatToInt(pArgs[1]));
+	default:
+		break;
+	}
+
+	return 0;
+}
+
+// STRING_FUNC
+int string_func::concatStr(char *pOriginS, char *pAdditStr)
+{
+	int iAdditLen = getStrLen(pAdditStr);
+
+	for (int i = getStrLen(pOriginS) - 1, k = 0; k < iAdditLen; k++, i++) pOriginS[i] = pAdditStr[k];
+
+	return 0;
+}
+
+int string_func::getStrLen(char *p)
+{
+	int i = 0;
+	while (p[i]) i++;
+	return i + 1;
+}
+
+bool string_func::isSameStr(char *p1, char *p2)
+{
+	for (int i = 0; p1[i] && p2[i]; i++)
+	{
+		if (p1[i] != p2[i]) return false;
+	}
+
+	return true;
 }
