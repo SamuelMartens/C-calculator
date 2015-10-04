@@ -24,7 +24,7 @@ int main()
 	rawString.cRawString[strFunc.getStrLen(rawString.cRawString)-2] = '\0';
 
 	rawString.removeWhitesp();
-//	LAST_ERROR = rawString.validateAll();
+	LAST_ERROR = rawString.validateAll();
 	if (LAST_ERROR != 0) {
 		cout << "Syntax error \n";
 		fgets(rawString.cRawString, SZ_RAW_STRING, stdin);

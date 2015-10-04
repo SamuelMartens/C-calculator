@@ -167,6 +167,12 @@ int raw_materials::getTokens(char *p, subexp *pSubExp )
             iOperationsPos++;
             iCountSymbols++;
         }
+		else if (isChar(p[i])) {
+			cout << "G2";
+			fOperands[iOperandsPos] = pSubExp[parParser.parseBuildInFunc(p, i, pSubExp, true)].result;
+			iCountDigits++;
+			iOperandsPos++;
+		}
         else {
             return 1;
         }
@@ -243,7 +249,7 @@ int parser::parseSubExp(char *p, int &iStartParse, subexp *pSubExp, bool bReturn
 	return iCurSub;
 }
 
-float parser::parseBuildInFunc(char *p, int &iStartParse, subexp *pSubExp, bool bReturnParseIndex)
+int parser::parseBuildInFunc(char *p, int &iStartParse, subexp *pSubExp, bool bReturnParseIndex)
 {
 	// in Build in fucn class we will do next signature (*p, StartFunc, EndFunc, FuncArg)
 	// Don't forget about bReturnParseIndex
@@ -257,42 +263,49 @@ float parser::parseBuildInFunc(char *p, int &iStartParse, subexp *pSubExp, bool 
 	// 6) Возвращает цифру обратно в вызвавшую функцию
 	const int iMaxFuncSize = 20;
 	const int iMaxArgsNum = 6;
-	int k = 0, iArgsNum = 0;
+	int k = 0, iArgsNum = 0, iSubIndex;
 	float fArgs[iMaxArgsNum];
 	char cFuncName[iMaxFuncSize];
 	build_in_func buildInFunc;
-
+	cout << "G1";
 	for (;p[iStartParse] && isChar(p[iStartParse]); iStartParse, k++) 
 	{
 		cFuncName[k] = p[iStartParse];
 	};
 	cFuncName[k + 1] = '\0';
-	parseFuncArgs(p, iStartParse, pSubExp, fArgs, iArgsNum);
-
+	cout << "Parse func name " << cFuncName << "\n";
+	iSubIndex = parseFuncArgs(p, iStartParse, pSubExp, fArgs, iArgsNum);
+	pSubExp[iSubIndex].result = buildInFunc.doFunction(cFuncName, fArgs, iArgsNum);
 	// Нужна функция для валидации подвыражения после функции (типа оно с запятыми и все дела)
-	return buildInFunc.doFunction(cFuncName, fArgs, iArgsNum);
-
+	return iSubIndex;
 }
 
-void parser::parseFuncArgs(char *p, int &iStartParse, subexp *pSubExp, float *pArgs, int &iArgsNum)
+int parser::parseFuncArgs(char *p, int &iStartParse, subexp *pSubExp, float *pArgs, int &iArgsNum)
 {
-	for (int i = iStartParse; p[i]; i++)
+	cout << "Parsed symbol " << p[iStartParse] << "\n";
+	iStartParse++;
+	int iSubIndex = floatToInt(parseDigit(p,iStartParse,true));
+	cout << "Parsed index " << iSubIndex << "\n";
+
+	for (int i = 0; pSubExp[iSubIndex].exp[i]; i++)
 	{
-		if (isDigit(p[i])) {
-			pArgs[iArgsNum] = parseDigit(p, i, true);
+		if (isDigit(pSubExp[iSubIndex].exp[i])) {
+			pArgs[iArgsNum] = parseDigit(pSubExp[iSubIndex].exp, i, true);
 		}
-		else if (p[i]==',')
+		else if (pSubExp[iSubIndex].exp[i]==',')
 		{
 			iArgsNum += 1;
 			continue;
 		}
-		else if (p[i]=='$')
+		else if (pSubExp[iSubIndex].exp[i]=='$')
 		{
-			pArgs[iArgsNum] = pSubExp[parseSubExp(p, i, pSubExp, true)].result;
+			pArgs[iArgsNum] = pSubExp[parseSubExp(pSubExp[iSubIndex].exp, i, pSubExp, true)].result;
 		}
 	}
-
+	cout << "Parsed args " << pArgs << "\n";
 	iArgsNum += 1;
+
+	return iSubIndex;
 }
 
 

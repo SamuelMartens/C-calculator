@@ -56,10 +56,10 @@ public:
 class parser{
 public:
 	float parseDigit(char *p, int &iStartParse, bool bReturnParseIndex = false);
-	float parseBuildInFunc(char *p, int &iStartParse, subexp *pSubExp, bool bReturnParseIndex = false);
+	int parseBuildInFunc(char *p, int &iStartParse, subexp *pSubExp, bool bReturnParseIndex = false);
 	// Think about change of the bReturnParseIndex ( maybe remove it and just always true?)
 	int parseSubExp(char *p, int &iStartParse, subexp *pSubExp ,bool bReturnParseIndex = false);
-	void parseFuncArgs(char *p, int &iStartParse, subexp *pSubExp, float *pArgs, int &iArgsNum);
+	int parseFuncArgs(char *p, int &iStartParse, subexp *pSubExp, float *pArgs, int &iArgsNum);
 };
 
 class build_in_func {
