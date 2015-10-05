@@ -267,12 +267,15 @@ int parser::parseBuildInFunc(char *p, int &iStartParse, subexp *pSubExp, bool bR
 	float fArgs[iMaxArgsNum];
 	char cFuncName[iMaxFuncSize];
 	build_in_func buildInFunc;
-	cout << "G1";
-	for (;p[iStartParse] && isChar(p[iStartParse]); iStartParse, k++) 
+	
+	for (;p[iStartParse] && isChar(p[iStartParse]); iStartParse++, k++) 
 	{
 		cFuncName[k] = p[iStartParse];
+		cout << "C " << p[iStartParse] << "\n ";
+		//cout << "Parse string" << p;
+		//cout << "I " << iStartParse;
 	};
-	cFuncName[k + 1] = '\0';
+	cFuncName[k] = '\0';
 	cout << "Parse func name " << cFuncName << "\n";
 	iSubIndex = parseFuncArgs(p, iStartParse, pSubExp, fArgs, iArgsNum);
 	pSubExp[iSubIndex].result = buildInFunc.doFunction(cFuncName, fArgs, iArgsNum);
@@ -302,7 +305,7 @@ int parser::parseFuncArgs(char *p, int &iStartParse, subexp *pSubExp, float *pAr
 			pArgs[iArgsNum] = pSubExp[parseSubExp(pSubExp[iSubIndex].exp, i, pSubExp, true)].result;
 		}
 	}
-	cout << "Parsed args " << pArgs << "\n";
+	cout << "Parsed args " << pArgs[0] <<pArgs[1] << "\n";
 	iArgsNum += 1;
 
 	return iSubIndex;
@@ -318,17 +321,20 @@ float build_in_func::abs(float fNumber)
 
 float build_in_func::power(float fNumber, int iPowerNum)
 {
+	int iPowerBase = fNumber;
+
 	if (iPowerNum == 0) fNumber=1;
 	else if (iPowerNum > 0)
 	{
-		for (int i = 0; i < iPowerNum; i++) fNumber *= fNumber;
+		cout << "G1";
+		for (int i = 0; i < iPowerNum-1; i++) fNumber = iPowerBase * fNumber;
 	}
 	else if (iPowerNum < 0)
 	{
-		for (int i = 0; i < abs((float)iPowerNum); i++) fNumber *= fNumber;
+		for (int i = 0; i < abs((float)iPowerNum)-1; i++) fNumber = iPowerBase * fNumber;
 		fNumber = 1 / fNumber;
 	}
-
+	cout << "fNumber " << fNumber << "\n";
 	return fNumber;
 }
 

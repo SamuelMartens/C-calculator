@@ -8,6 +8,7 @@ int LAST_ERROR = 0;
 /* sizeof(int k) return 16 
 1) Do validation of Build in Fucntion (its must ends with "()" )
 (5+6)*(11-2/4*(11+1)+12)+(7+2) == 196
+2) Ad implementation of unary minus
 */
 
 int main()
