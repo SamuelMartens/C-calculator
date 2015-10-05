@@ -143,11 +143,18 @@ int raw_materials::getTokens(char *p, subexp *pSubExp )
 
     for (int i = 0; p[i]; i++) {
 
-		// Parse digits block
+
+        // Parse digits block
         if (isDigit(p[i])) {
             fOperands[iOperandsPos] = parParser.parseDigit(p,i,true);
             iCountDigits++;
 			iOperandsPos++;
+        }
+        else if(i == 0 && p[i] == '-') {
+            i++;
+            fOperands[iOperandsPos] = parParser.parseDigit(p,i,true,true);
+            iCountDigits++;
+            iOperandsPos++;
         }
 		// Parse sub expression
 		else if (p[i] == '$') {
@@ -159,8 +166,7 @@ int raw_materials::getTokens(char *p, subexp *pSubExp )
         else if (isInArray(p[i], cSymbols)) {
 
 			// Validate that no dublicate symbols
-			if (i > 0 && isInArray(p[i - 1], cSymbols)) return 1; 
-
+			if (i > 0 && isInArray(p[i - 1], cSymbols)) return 1;
             opOperations[iOperationsPos].symbol = p[i];
             opOperations[iOperationsPos].left_op = iOperationsPos;
             opOperations[iOperationsPos].right_op = iOperationsPos + 1;
@@ -218,13 +224,13 @@ void raw_materials::doOperationGroup(char *pOperationGroup,const int *pOperation
 }
 
 // PARSER
-float parser::parseDigit(char *p, int &iStartParse, bool bReturnParseIndex)
+float parser::parseDigit(char *p, int &iStartParse, bool bReturnParseIndex, bool bIsNegative)
 {
     // Max len of float digit
     const int iFloatRange = 8;
     char cDigitStrPart[iFloatRange];
     int i = iStartParse, k = 0;
-
+    int iSingModifier = -1 ? bIsNegative : 1;
 
 	for (; p[i] && (isDigit(p[i]) || p[i] == '.'); i++, k++)
         cDigitStrPart[k] = p[i];
@@ -232,7 +238,7 @@ float parser::parseDigit(char *p, int &iStartParse, bool bReturnParseIndex)
 
     if (bReturnParseIndex) iStartParse = i-1;
 
-    return charToFloat(cDigitStrPart,0,k-1);
+    return charToFloat(cDigitStrPart,0,k-1) * iSingModifier;
 }
 
 int parser::parseSubExp(char *p, int &iStartParse, subexp *pSubExp, bool bReturnParseIndex)
@@ -254,13 +260,13 @@ int parser::parseBuildInFunc(char *p, int &iStartParse, subexp *pSubExp, bool bR
 	// in Build in fucn class we will do next signature (*p, StartFunc, EndFunc, FuncArg)
 	// Don't forget about bReturnParseIndex
 
-	// 1) Найти функцию
-	// 2) Сделать функцию которая будет парсить аргументы функции
-	//	  она же будет возвращать значения и кол-ва аргументов
-	// 3) Передать результаты парсинга функции аргументов обратно парсеру функций
-	// 4) Парсер выбирает какая функция будет выполнена
-	// 5) Выполняет
-	// 6) Возвращает цифру обратно в вызвавшую функцию
+	// 1) пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+	// 2) пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+	//	  пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅ-пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+	// 3) пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+	// 4) пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+	// 5) пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+	// 6) пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 	const int iMaxFuncSize = 20;
 	const int iMaxArgsNum = 6;
 	int k = 0, iArgsNum = 0, iSubIndex;
@@ -279,7 +285,7 @@ int parser::parseBuildInFunc(char *p, int &iStartParse, subexp *pSubExp, bool bR
 	cout << "Parse func name " << cFuncName << "\n";
 	iSubIndex = parseFuncArgs(p, iStartParse, pSubExp, fArgs, iArgsNum);
 	pSubExp[iSubIndex].result = buildInFunc.doFunction(cFuncName, fArgs, iArgsNum);
-	// Нужна функция для валидации подвыражения после функции (типа оно с запятыми и все дела)
+	// пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ)
 	return iSubIndex;
 }
 
@@ -289,6 +295,7 @@ int parser::parseFuncArgs(char *p, int &iStartParse, subexp *pSubExp, float *pAr
 	iStartParse++;
 	int iSubIndex = floatToInt(parseDigit(p,iStartParse,true));
 	cout << "Parsed index " << iSubIndex << "\n";
+    // Implement unary minus here
 
 	for (int i = 0; pSubExp[iSubIndex].exp[i]; i++)
 	{

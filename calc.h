@@ -55,7 +55,7 @@ public:
 
 class parser{
 public:
-	float parseDigit(char *p, int &iStartParse, bool bReturnParseIndex = false);
+	float parseDigit(char *p, int &iStartParse, bool bReturnParseIndex = false, bool bIsNegative=false);
 	int parseBuildInFunc(char *p, int &iStartParse, subexp *pSubExp, bool bReturnParseIndex = false);
 	// Think about change of the bReturnParseIndex ( maybe remove it and just always true?)
 	int parseSubExp(char *p, int &iStartParse, subexp *pSubExp ,bool bReturnParseIndex = false);
