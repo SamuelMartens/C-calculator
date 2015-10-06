@@ -8,6 +8,7 @@
 
 const int SZ_RAW_STRING = 80;
 const int SZ_GLOBAL_SIZE = 20;
+extern int LAST_ERROR;
 
 
 class opr {

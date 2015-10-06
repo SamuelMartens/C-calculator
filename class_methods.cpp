@@ -62,7 +62,7 @@ int raw_string::validateParentheses()
 
 int raw_string::validateSpecialSymbols()
 {
-	// Looks that some symbols, should not present is expression
+	// Looks that some symbols, should not present in expression
 	char cSpecialSymbols[] = "$";
 
 	for (int i = 0; cRawString[i]; i++)
@@ -184,7 +184,7 @@ int raw_materials::getTokens(char *p, subexp *pSubExp )
             return 1;
         }
     }
-    if (iCountDigits - iCountSymbols != 1 || iCountDigits < 2) return 1;
+    if (iCountDigits - iCountSymbols != 1) return 1;
     return 0;
 }
 
@@ -303,7 +303,7 @@ int parser::parseFuncArgs(char *p, int &iStartParse, subexp *pSubExp, float *pAr
 		}
         else if (isChar(pSubExp[iSubIndex].exp[i]))
         {
-            pArgs[iArgsNum] = pSubExp[parseBuildInFunc(p, i, pSubExp, true)].result;
+            pArgs[iArgsNum] = pSubExp[parseBuildInFunc(pSubExp[iSubIndex].exp, i, pSubExp, true)].result;
         }
 		else if (pSubExp[iSubIndex].exp[i]=='$')
 		{
@@ -353,14 +353,17 @@ int build_in_func::chooseFunc(char *p)
 float build_in_func::doFunction(char *pFuncName, float *pArgs, int iArgsNum)
 {
 	// Think how to use iArgsNum for validation
+    cout << "Choose func " << chooseFunc(pFuncName) << "\n";
 	switch (chooseFunc(pFuncName))
 	{
-	case 0:
-		return abs(pArgs[0]);
-	case 1:
-		return power(pArgs[0], floatToInt(pArgs[1]));
-	default:
-		break;
+	    case 0:
+		    return abs(pArgs[0]);
+	    case 1:
+		    return power(pArgs[0], floatToInt(pArgs[1]));
+        default:
+            // Case when we not found any build in function with such name
+            LAST_ERROR = 1;
+		    break;
 	}
 
 	return 0;
