@@ -65,7 +65,9 @@ public:
 
 class build_in_func {
 	// Dont forget about zero symbol when correct size
-	char cFuncNames[2][6] = { "abs","power" };
+	char cFuncNames[3][6] = { "abs", "power" };
+	// It is number of function args. Must go in the same order as names
+	const int iFuncArgsNum[2] = { 1, 2 };
 public:
 	// Staff functions
 	int chooseFunc(char *p);

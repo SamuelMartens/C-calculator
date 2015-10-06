@@ -185,6 +185,8 @@ int raw_materials::getTokens(char *p, subexp *pSubExp )
         }
     }
     if (iCountDigits - iCountSymbols != 1) return 1;
+	// Check if there any errors during function work
+	if (LAST_ERROR != 0) return 1;
     return 0;
 }
 
@@ -325,7 +327,7 @@ float build_in_func::abs(float fNumber)
 
 float build_in_func::power(float fNumber, int iPowerNum)
 {
-	int iPowerBase = fNumber;
+	int iPowerBase = floatToInt(fNumber);
 
 	if (iPowerNum == 0) fNumber=1;
 	else if (iPowerNum > 0)
@@ -343,7 +345,7 @@ float build_in_func::power(float fNumber, int iPowerNum)
 int build_in_func::chooseFunc(char *p)
 {
 	string_func strFunc;
-	for (int i = 0; cFuncNames[i]; i++) {
+	for (int i = 0; cFuncNames[i][0]; i++) {
 		if (strFunc.isSameStr(cFuncNames[i], p)) return i;
 	}
 
@@ -352,13 +354,21 @@ int build_in_func::chooseFunc(char *p)
 
 float build_in_func::doFunction(char *pFuncName, float *pArgs, int iArgsNum)
 {
-	// Think how to use iArgsNum for validation
-    cout << "Choose func " << chooseFunc(pFuncName) << "\n";
-	switch (chooseFunc(pFuncName))
+	int iChosenIndex = chooseFunc(pFuncName);
+
+	switch (iChosenIndex)
 	{
 	    case 0:
+			if (iFuncArgsNum[iChosenIndex] != iArgsNum) {
+				LAST_ERROR = 1;
+				return 0;
+			}
 		    return abs(pArgs[0]);
 	    case 1:
+			if (iFuncArgsNum[iChosenIndex] != iArgsNum) {
+				LAST_ERROR = 1;
+				return 0;
+			}
 		    return power(pArgs[0], floatToInt(pArgs[1]));
         default:
             // Case when we not found any build in function with such name
@@ -388,10 +398,15 @@ int string_func::getStrLen(char *p)
 
 bool string_func::isSameStr(char *p1, char *p2)
 {
-	for (int i = 0; p1[i] && p2[i]; i++)
-	{
-		if (p1[i] != p2[i]) return false;
-	}
+	if (getStrLen(p1) == getStrLen(p2)) {
 
-	return true;
+		for (int i = 0; p1[i] && p2[i]; i++)
+		{
+			if (p1[i] != p2[i]) return false;
+		}
+		
+		return true;
+	}
+	else
+		return false;
 }
