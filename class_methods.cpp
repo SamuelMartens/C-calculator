@@ -34,19 +34,20 @@ int raw_string::validateParentheses()
 
     int iOpened = 0, iClosed = 0;
     char cSymbols[] = "*/+-", cDigits[] = "0123456789";
+    char cBeforeOpen[] = "(,", cAfterOpen[]="(-", cAfterClose[] = ",)";
     for (int i=0; cRawString[i];i++ )
     {
         switch (cRawString[i])
         {
             case '(':
                 iOpened += 1;
-                if (i!=0 && cRawString[i-1]!='(' && !(isChar(cRawString[i-1])) && !(isInArray(cRawString[i-1],cSymbols))) return 1;
-				if (cRawString[i + 1] && !(isInArray(cRawString[i + 1], cDigits))) return 1;
+                if (i!=0 && !(isInArray(cRawString[i-1],cBeforeOpen)) && !(isChar(cRawString[i-1])) && !(isInArray(cRawString[i-1],cSymbols))) return 1;
+				if (cRawString[i + 1] && !(isChar(cRawString[i+1])) && !(isInArray(cRawString[i + 1], cDigits)) && !(isInArray(cRawString[i + 1], cAfterOpen))) return 1;
                 break;
             case ')':
                 iClosed += 1;
-                if (i!=0 && cRawString[i-1]!=')' && !(isInArray(cRawString[i-1],cDigits))) return 1;
-				if (cRawString[i + 1] && cRawString[i + 1] != ')' && !(isInArray(cRawString[i + 1], cSymbols))) return 1;
+                if (i!=0 && cRawString[i-1]!=')' && !(isInArray(cRawString[i-1],cDigits))){ cout <<"G3"; return 1;};
+				if (cRawString[i + 1] && !(isInArray(cRawString[i + 1], cAfterClose)) && !(isInArray(cRawString[i + 1], cSymbols))) return 1;
                 if (iClosed>iOpened) return 1;
                 break;
             default:
@@ -165,7 +166,7 @@ int raw_materials::getTokens(char *p, subexp *pSubExp )
         // Parse symbols block
         else if (isInArray(p[i], cSymbols)) {
 
-			// Validate that no dublicate symbols
+			// Validate that no dublicated symbols
 			if (i > 0 && isInArray(p[i - 1], cSymbols)) return 1;
             opOperations[iOperationsPos].symbol = p[i];
             opOperations[iOperationsPos].left_op = iOperationsPos;
@@ -173,8 +174,8 @@ int raw_materials::getTokens(char *p, subexp *pSubExp )
             iOperationsPos++;
             iCountSymbols++;
         }
+        // Parse build in function
 		else if (isChar(p[i])) {
-			cout << "G2";
 			fOperands[iOperandsPos] = pSubExp[parParser.parseBuildInFunc(p, i, pSubExp, true)].result;
 			iCountDigits++;
 			iOperandsPos++;
@@ -230,7 +231,7 @@ float parser::parseDigit(char *p, int &iStartParse, bool bReturnParseIndex, bool
     const int iFloatRange = 8;
     char cDigitStrPart[iFloatRange];
     int i = iStartParse, k = 0;
-    int iSingModifier = -1 ? bIsNegative : 1;
+    int iSingModifier=bIsNegative ? -1 :1;
 
 	for (; p[i] && (isDigit(p[i]) || p[i] == '.'); i++, k++)
         cDigitStrPart[k] = p[i];
@@ -260,13 +261,7 @@ int parser::parseBuildInFunc(char *p, int &iStartParse, subexp *pSubExp, bool bR
 	// in Build in fucn class we will do next signature (*p, StartFunc, EndFunc, FuncArg)
 	// Don't forget about bReturnParseIndex
 
-	// 1) ����� �������
-	// 2) ������� ������� ������� ����� ������� ��������� �������
-	//	  ��� �� ����� ���������� �������� � ���-�� ����������
-	// 3) �������� ���������� �������� ������� ���������� ������� ������� �������
-	// 4) ������ �������� ����� ������� ����� ���������
-	// 5) ���������
-	// 6) ���������� ����� ������� � ��������� �������
+
 	const int iMaxFuncSize = 20;
 	const int iMaxArgsNum = 6;
 	int k = 0, iArgsNum = 0, iSubIndex;
@@ -277,42 +272,44 @@ int parser::parseBuildInFunc(char *p, int &iStartParse, subexp *pSubExp, bool bR
 	for (;p[iStartParse] && isChar(p[iStartParse]); iStartParse++, k++) 
 	{
 		cFuncName[k] = p[iStartParse];
-		cout << "C " << p[iStartParse] << "\n ";
-		//cout << "Parse string" << p;
-		//cout << "I " << iStartParse;
 	};
 	cFuncName[k] = '\0';
-	cout << "Parse func name " << cFuncName << "\n";
 	iSubIndex = parseFuncArgs(p, iStartParse, pSubExp, fArgs, iArgsNum);
 	pSubExp[iSubIndex].result = buildInFunc.doFunction(cFuncName, fArgs, iArgsNum);
-	// ����� ������� ��� ��������� ������������ ����� ������� (���� ��� � �������� � ��� ����)
 	return iSubIndex;
 }
 
 int parser::parseFuncArgs(char *p, int &iStartParse, subexp *pSubExp, float *pArgs, int &iArgsNum)
 {
-	cout << "Parsed symbol " << p[iStartParse] << "\n";
 	iStartParse++;
 	int iSubIndex = floatToInt(parseDigit(p,iStartParse,true));
-	cout << "Parsed index " << iSubIndex << "\n";
     // Implement unary minus here
 
 	for (int i = 0; pSubExp[iSubIndex].exp[i]; i++)
 	{
-		if (isDigit(pSubExp[iSubIndex].exp[i])) {
+		if (isDigit(pSubExp[iSubIndex].exp[i]))
+        {
 			pArgs[iArgsNum] = parseDigit(pSubExp[iSubIndex].exp, i, true);
 		}
+        else if (pSubExp[iSubIndex].exp[i]=='-' && pSubExp[iSubIndex].exp[i+1] && isDigit(pSubExp[iSubIndex].exp[i+1]))
+        {
+            i++;
+            pArgs[iArgsNum] = parseDigit(pSubExp[iSubIndex].exp, i, true, true);
+        }
 		else if (pSubExp[iSubIndex].exp[i]==',')
 		{
 			iArgsNum += 1;
 			continue;
 		}
+        else if (isChar(pSubExp[iSubIndex].exp[i]))
+        {
+            pArgs[iArgsNum] = pSubExp[parseBuildInFunc(p, i, pSubExp, true)].result;
+        }
 		else if (pSubExp[iSubIndex].exp[i]=='$')
 		{
 			pArgs[iArgsNum] = pSubExp[parseSubExp(pSubExp[iSubIndex].exp, i, pSubExp, true)].result;
 		}
 	}
-	cout << "Parsed args " << pArgs[0] <<pArgs[1] << "\n";
 	iArgsNum += 1;
 
 	return iSubIndex;
@@ -333,7 +330,6 @@ float build_in_func::power(float fNumber, int iPowerNum)
 	if (iPowerNum == 0) fNumber=1;
 	else if (iPowerNum > 0)
 	{
-		cout << "G1";
 		for (int i = 0; i < iPowerNum-1; i++) fNumber = iPowerBase * fNumber;
 	}
 	else if (iPowerNum < 0)
@@ -341,7 +337,6 @@ float build_in_func::power(float fNumber, int iPowerNum)
 		for (int i = 0; i < abs((float)iPowerNum)-1; i++) fNumber = iPowerBase * fNumber;
 		fNumber = 1 / fNumber;
 	}
-	cout << "fNumber " << fNumber << "\n";
 	return fNumber;
 }
 
