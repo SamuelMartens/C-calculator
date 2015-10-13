@@ -34,6 +34,7 @@ class raw_string{
 public:
     char cRawString[SZ_RAW_STRING];
 
+	raw_string() { cRawString[0] = '\0'; };
     void removeWhitesp();
     void splitOnSubExp(subexp *pSubExp);
 	int validateAll();
