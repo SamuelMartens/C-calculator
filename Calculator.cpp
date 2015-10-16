@@ -4,6 +4,7 @@
 #include "calc.h"
 
 int LAST_ERROR = 0;
+int VARIABLE_NUM = 100;
 
 /* sizeof(int k) return 16 
 1) Do validation of Build in Fucntion (its must ends with "()" )
@@ -13,22 +14,31 @@ int LAST_ERROR = 0;
 
 int main()
 {
-	raw_string rawString;
-	raw_materials rawMat;
-	string_func strFunc;
-	float fResult;
-	subexp suSubExp[SZ_GLOBAL_SIZE];
+	variable *vVarScope;
+	int iVarNum = 0;
+	vVarScope = new variable[VARIABLE_NUM];
 
-	while (!(strFunc.isSameStr(rawString.cRawString, "exit()"))){
+	for (;;){
+
+		raw_string rawString;
+		raw_materials rawMat;
+		string_func strFunc;
+		float fResult;
+		subexp suSubExp[SZ_GLOBAL_SIZE];
+
+
 		cout << "<< ";
 		fgets(rawString.cRawString, SZ_RAW_STRING, stdin);
 	
 		rawString.cRawString[strFunc.getStrLen(rawString.cRawString)-2] = '\0';
 
+		if (strFunc.isSameStr(rawString.cRawString, "exit()")) break;
+
 		rawString.removeWhitesp();
 		LAST_ERROR = rawString.validateAll();
 		if (LAST_ERROR != 0) {
 			cout << "Syntax error \n";
+			delete[] vVarScope;
 		//	fgets(rawString.cRawString, SZ_RAW_STRING, stdin);
 			return 1;
 		}
@@ -36,6 +46,7 @@ int main()
 		LAST_ERROR = rawMat.getTokens(suSubExp[0].exp, suSubExp);
 		if (LAST_ERROR != 0) {
 			cout << "Syntax error in token \n";
+			delete[] vVarScope;
 	//		fgets(rawString.cRawString, SZ_RAW_STRING, stdin);
 			return 1;
 		}
@@ -43,6 +54,7 @@ int main()
 		cout << "<< " << fResult << "\n";
 	//	fgets(rawString.cRawString, SZ_RAW_STRING, stdin);
 	}
+
 	return 0;
 }
 

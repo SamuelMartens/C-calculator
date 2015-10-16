@@ -62,10 +62,11 @@ public:
 	// Think about change of the bReturnParseIndex ( maybe remove it and just always true?)
 	int parseSubExp(char *p, int &iStartParse, subexp *pSubExp ,bool bReturnParseIndex = false);
 	int parseFuncArgs(char *p, int &iStartParse, subexp *pSubExp, float *pArgs, int &iArgsNum);
+	
 };
 
 class build_in_func {
-	// Dont forget about zero symbol when correct size
+	// !Dont forget about zero symbol when correct size
 	char cFuncNames[3][6] = { "abs", "power" };
 	// It is number of function args. Must go in the same order as names
 	const int iFuncArgsNum[2] = { 1, 2 };
@@ -83,8 +84,20 @@ public:
 	int concatStr(char *pOriginS, char *pAdditStr);
 	int getStrLen(char *p);
 	bool isSameStr(char *p1, char *p2);
+	void copyStr(char *pCopyTo, char *pCopyFrom);
 };
 
+
+class variable {
+	char *name;
+	float *value;
+public:
+	variable(char *pName, float fValue);
+	~variable() { delete name; delete value; };
+	void setValue(float fValue) { *value = fValue; };
+	void setName(char *pName) { string_func strFunc; strFunc.copyStr(name, pName);};
+	void setNameValue(char *pName, float fValue) { setName(pName); setValue(fValue); };
+};
 
 int getParent(subexp *pSubExp, int iChildInd);
 int floatToChar(float fDigit, char *pCharDigit, const int iDigitSize=8);
@@ -94,6 +107,7 @@ float charToFloat(char *p, int iStartNum, int iEndNum);
 char isInArray(char cSymbol,char *pContainer, int iStart = -1, int iEnd = -1);
 bool isChar(char cSymbol);
 bool isDigit(char cSymbol);
+bool isFunc(char *p, int &iStartParse);
 
 using namespace std;
 

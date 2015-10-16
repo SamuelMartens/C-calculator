@@ -175,10 +175,15 @@ int raw_materials::getTokens(char *p, subexp *pSubExp )
             iCountSymbols++;
         }
         // Parse build in function
-		else if (isChar(p[i])) {
+		else if (isChar(p[i]) && isFunc(p,i)) {
 			fOperands[iOperandsPos] = pSubExp[parParser.parseBuildInFunc(p, i, pSubExp, true)].result;
 			iCountDigits++;
 			iOperandsPos++;
+		}
+		// Parse variable 
+		else if (isChar(p[i]))
+		{
+
 		}
         else {
             return 1;
@@ -261,9 +266,6 @@ int parser::parseSubExp(char *p, int &iStartParse, subexp *pSubExp, bool bReturn
 int parser::parseBuildInFunc(char *p, int &iStartParse, subexp *pSubExp, bool bReturnParseIndex)
 {
 	// in Build in fucn class we will do next signature (*p, StartFunc, EndFunc, FuncArg)
-	// Don't forget about bReturnParseIndex
-
-
 	const int iMaxFuncSize = 20;
 	const int iMaxArgsNum = 6;
 	int k = 0, iArgsNum = 0, iSubIndex;
@@ -286,7 +288,6 @@ int parser::parseFuncArgs(char *p, int &iStartParse, subexp *pSubExp, float *pAr
 	iStartParse++;
 	int iSubIndex = floatToInt(parseDigit(p,iStartParse,true));
     // Implement unary minus here
-
 	for (int i = 0; pSubExp[iSubIndex].exp[i]; i++)
 	{
 		if (isDigit(pSubExp[iSubIndex].exp[i]))
@@ -410,3 +411,27 @@ bool string_func::isSameStr(char *p1, char *p2)
 	else
 		return false;
 }
+
+
+void string_func::copyStr(char *pCopyTo, char *pCopyFrom)
+{
+	int i;
+
+	for (i = 0; pCopyFrom[i]; i++)
+	{
+		pCopyTo[i] = pCopyFrom[i];
+	}
+
+	pCopyTo[i] = '\0';
+}
+// VARIABLE
+variable::variable(char *pName, float fValue)
+{
+	string_func strFunc;
+	
+	name = new char[strFunc.getStrLen(pName)];
+	value = new float(fValue);
+	strFunc.copyStr(name, pName);
+}
+
+

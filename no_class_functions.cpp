@@ -139,3 +139,11 @@ int floatToInt(float fNumber)
 	fNumber = trunc(fNumber);
 	return (int)fNumber;
 }
+
+bool isFunc(char *p, int &iStartParse)
+{
+	int i;
+	for (i = iStartParse; p[i] && isChar(p[i]); i++);
+	if (p[i] && p[i] == '$') return true;
+	return false;
+}
