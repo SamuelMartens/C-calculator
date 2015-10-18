@@ -434,4 +434,12 @@ variable::variable(char *pName, float fValue)
 	strFunc.copyStr(name, pName);
 }
 
+variable::variable(const variable &obj)
+{
+	string_func strFunc;
+	name = new char[strFunc.getStrLen(obj.name)];
+	value = new float(*obj.value);
+	strFunc.copyStr(name, obj.name);
+}
+
 

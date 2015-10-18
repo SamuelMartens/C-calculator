@@ -4,19 +4,16 @@
 #include "calc.h"
 
 int LAST_ERROR = 0;
-int VARIABLE_NUM = 100;
+
 
 /* sizeof(int k) return 16 
 1) Do validation of Build in Fucntion (its must ends with "()" )
 (5+6)*(11-2/4*(11+1)+12)+(7+2) == 196
-2) Ad implementation of unary minus
 */
 
 int main()
 {
-	variable *vVarScope;
-	int iVarNum = 0;
-	vVarScope = new variable[VARIABLE_NUM];
+	variable_scope varScope;
 
 	for (;;){
 
@@ -38,7 +35,6 @@ int main()
 		LAST_ERROR = rawString.validateAll();
 		if (LAST_ERROR != 0) {
 			cout << "Syntax error \n";
-			delete[] vVarScope;
 		//	fgets(rawString.cRawString, SZ_RAW_STRING, stdin);
 			return 1;
 		}
@@ -46,7 +42,6 @@ int main()
 		LAST_ERROR = rawMat.getTokens(suSubExp[0].exp, suSubExp);
 		if (LAST_ERROR != 0) {
 			cout << "Syntax error in token \n";
-			delete[] vVarScope;
 	//		fgets(rawString.cRawString, SZ_RAW_STRING, stdin);
 			return 1;
 		}

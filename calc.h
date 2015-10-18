@@ -8,6 +8,7 @@
 
 const int SZ_RAW_STRING = 80;
 const int SZ_GLOBAL_SIZE = 20;
+const int VARIABLE_SCOPE_SIZE = 100;
 extern int LAST_ERROR;
 
 
@@ -94,9 +95,16 @@ class variable {
 public:
 	variable(char *pName, float fValue);
 	~variable() { delete name; delete value; };
+	variable(const variable &obj);
 	void setValue(float fValue) { *value = fValue; };
 	void setName(char *pName) { string_func strFunc; strFunc.copyStr(name, pName);};
 	void setNameValue(char *pName, float fValue) { setName(pName); setValue(fValue); };
+};
+
+class variable_scope {
+public:
+	variable vScope[VARIABLE_SCOPE_SIZE];
+	int iVarNum = 0;
 };
 
 int getParent(subexp *pSubExp, int iChildInd);
