@@ -51,7 +51,7 @@ public:
     opr opOperations[SZ_GLOBAL_SIZE];
 
     raw_materials() {iCountDigits = 0; iCountSymbols = 0;};
-    int getTokens(char *p, subexp *pSubExp);
+    int getTokens(char *p, subexp *pSubExp, variable_scope &varScope);
     void doOperationGroup(char *pOperationGroup, const int *pOperationGroupLim, int &iProcDigits);
     float getResult();
 };
@@ -63,6 +63,7 @@ public:
 	// Think about change of the bReturnParseIndex ( maybe remove it and just always true?)
 	int parseSubExp(char *p, int &iStartParse, subexp *pSubExp ,bool bReturnParseIndex = false);
 	int parseFuncArgs(char *p, int &iStartParse, subexp *pSubExp, float *pArgs, int &iArgsNum);
+	int parseVariable(char *p, int &iStartParse, variable_scope &varScope);
 	
 };
 
@@ -92,19 +93,26 @@ public:
 class variable {
 	char *name;
 	float *value;
+	bool *initialized;
 public:
+	variable() { name = new char; value = new float; initialized = new bool(false); };
+	variable(char *pName);
 	variable(char *pName, float fValue);
-	~variable() { delete name; delete value; };
+	~variable() { delete name; delete value; delete initialized; };
 	variable(const variable &obj);
 	void setValue(float fValue) { *value = fValue; };
 	void setName(char *pName) { string_func strFunc; strFunc.copyStr(name, pName);};
 	void setNameValue(char *pName, float fValue) { setName(pName); setValue(fValue); };
+	char *getName() { return name; };
+	float getValue() { return *value; };
 };
 
 class variable_scope {
 public:
 	variable vScope[VARIABLE_SCOPE_SIZE];
 	int iVarNum = 0;
+	int isExistedVar(char *pVarName);
+	// !Do here increment method
 };
 
 int getParent(subexp *pSubExp, int iChildInd);

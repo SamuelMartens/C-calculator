@@ -134,16 +134,15 @@ float opr::doOperation(float fOperandL, float fOperandR)
     return 0;
 }
 
-// RAW_MATERIALS
 
-int raw_materials::getTokens(char *p, subexp *pSubExp )
+// RAW_MATERIALS
+int raw_materials::getTokens(char *p, subexp *pSubExp, variable_scope &varScope )
 {
     int iStartNum = -1, iEndNum = 0, iOperandsPos = 0, iOperationsPos = 0;
     char cSymbols[] = "*/+-", cDigits[] = "0123456789", cSpecialSymbols[] = ".$,";
     parser parParser;
 
     for (int i = 0; p[i]; i++) {
-
 
         // Parse digits block
         if (isDigit(p[i])) {
@@ -183,7 +182,19 @@ int raw_materials::getTokens(char *p, subexp *pSubExp )
 		// Parse variable 
 		else if (isChar(p[i]))
 		{
-
+			/*
+			!What I set varible:
+			1) Check valedation:
+			1.1) Check that the first token is variable
+			1.2) Check that this goes right after first token
+			2) Variable set:
+			2.1) Check if variable with such name exist
+			2.1.1) If exist set new value
+			2.1.2) If not exist set, create new one with new value
+			*/
+			// !Here we become aware, whether it variable set or variable use
+			int iCurVarIndex = parParser.parseVariable(p, i, varScope);
+				
 		}
         else {
             return 1;
@@ -318,6 +329,29 @@ int parser::parseFuncArgs(char *p, int &iStartParse, subexp *pSubExp, float *pAr
 	return iSubIndex;
 }
 
+int parser::parseVariable(char *p, int &iStartParse, variable_scope &varScope)
+{
+	const int iMaxVarNameSize = 36;
+	int k = 0;
+	char cVarName[iMaxVarNameSize];
+	int iCurVarIndex;
+	for (; p[iStartParse] && isChar(p[iStartParse]);k++, iStartParse++)
+	{
+		cVarName[k] = p[iStartParse];
+	}
+	cVarName[k] = '\0';
+	iCurVarIndex = varScope.isExistedVar(cVarName);
+	if ( iCurVarIndex != -1 )
+	{
+		return iCurVarIndex;
+	}
+	else
+	{
+		varScope.iVarNum += 1;
+		varScope.vScope[varScope.iVarNum].setName(cVarName);
+	}
+	return varScope.iVarNum;
+}
 
 // BUILD_IN_FUNC
 float build_in_func::abs(float fNumber)
@@ -424,7 +458,16 @@ void string_func::copyStr(char *pCopyTo, char *pCopyFrom)
 
 	pCopyTo[i] = '\0';
 }
+
 // VARIABLE
+variable::variable(char *pName)
+{
+	string_func strFunc;
+	name = new char[strFunc.getStrLen(pName)];
+	strFunc.copyStr(name, pName);
+	value = new float;
+	initialized = new bool(false);
+}
 variable::variable(char *pName, float fValue)
 {
 	string_func strFunc;
@@ -432,6 +475,7 @@ variable::variable(char *pName, float fValue)
 	name = new char[strFunc.getStrLen(pName)];
 	value = new float(fValue);
 	strFunc.copyStr(name, pName);
+	initialized = new bool(true);
 }
 
 variable::variable(const variable &obj)
@@ -440,6 +484,19 @@ variable::variable(const variable &obj)
 	name = new char[strFunc.getStrLen(obj.name)];
 	value = new float(*obj.value);
 	strFunc.copyStr(name, obj.name);
+	initialized = new bool(*obj.initialized);
 }
 
 
+// VARIABLE_SCOPE
+int variable_scope::isExistedVar(char *pVarName)
+{
+	string_func strFunc;
+	
+	for (int i; i < iVarNum; i++ )
+	{
+		if (strFunc.isSameStr(pVarName, vScope[i].getName())) return i;
+	}
+
+	return -1;
+}

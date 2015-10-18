@@ -39,7 +39,7 @@ int main()
 			return 1;
 		}
 		rawString.splitOnSubExp(suSubExp);
-		LAST_ERROR = rawMat.getTokens(suSubExp[0].exp, suSubExp);
+		LAST_ERROR = rawMat.getTokens(suSubExp[0].exp, suSubExp, varScope);
 		if (LAST_ERROR != 0) {
 			cout << "Syntax error in token \n";
 	//		fgets(rawString.cRawString, SZ_RAW_STRING, stdin);
