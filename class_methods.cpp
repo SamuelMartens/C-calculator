@@ -1,4 +1,5 @@
 #include "calc.h"
+#include "variable_scope.h"
 
 // RAW_STRING
 void raw_string::removeWhitesp()
@@ -168,7 +169,7 @@ int raw_materials::getTokens(char *p, subexp *pSubExp, variable_scope &varScope 
         }
 		// Parse sub expression
 		else if (p[i] == '$') {
-			fOperands[iOperandsPos] = pSubExp[parParser.parseSubExp(p, i, pSubExp, true)].result;
+			fOperands[iOperandsPos] = pSubExp[parParser.parseSubExp(p, i, pSubExp, varScope, true)].result;
 			iCountDigits++;
 			iOperandsPos++;
 		}
@@ -185,7 +186,7 @@ int raw_materials::getTokens(char *p, subexp *pSubExp, variable_scope &varScope 
         }
         // Parse build in function
 		else if (isChar(p[i]) && isFunc(p,i)) {
-			fOperands[iOperandsPos] = pSubExp[parParser.parseBuildInFunc(p, i, pSubExp, true)].result;
+			fOperands[iOperandsPos] = pSubExp[parParser.parseBuildInFunc(p, i, pSubExp, varScope, true)].result;
 			iCountDigits++;
 			iOperandsPos++;
 		}
@@ -274,21 +275,21 @@ float parser::parseDigit(char *p, int &iStartParse, bool bReturnParseIndex, bool
     return charToFloat(cDigitStrPart,0,k-1) * iSingModifier;
 }
 
-int parser::parseSubExp(char *p, int &iStartParse, subexp *pSubExp, bool bReturnParseIndex)
+int parser::parseSubExp(char *p, int &iStartParse, subexp *pSubExp, variable_scope &varScope, bool bReturnParseIndex)
 {
 	int iCurSub;
 	raw_materials rawMat;
 
 	iStartParse++;
 	iCurSub = floatToInt(parseDigit(p, iStartParse, bReturnParseIndex));
-	rawMat.getTokens(pSubExp[iCurSub].exp, pSubExp);
+	rawMat.getTokens(pSubExp[iCurSub].exp, pSubExp, varScope);
 	pSubExp[iCurSub].result = rawMat.getResult();
 
 	// we return index of SubExpression which was used 
 	return iCurSub;
 }
 
-int parser::parseBuildInFunc(char *p, int &iStartParse, subexp *pSubExp, bool bReturnParseIndex)
+int parser::parseBuildInFunc(char *p, int &iStartParse, subexp *pSubExp, variable_scope &varScope ,bool bReturnParseIndex)
 {
 	// in Build in fucn class we will do next signature (*p, StartFunc, EndFunc, FuncArg)
 	const int iMaxFuncSize = 20;
@@ -303,12 +304,12 @@ int parser::parseBuildInFunc(char *p, int &iStartParse, subexp *pSubExp, bool bR
 		cFuncName[k] = p[iStartParse];
 	};
 	cFuncName[k] = '\0';
-	iSubIndex = parseFuncArgs(p, iStartParse, pSubExp, fArgs, iArgsNum);
+	iSubIndex = parseFuncArgs(p, iStartParse, pSubExp, fArgs, iArgsNum, varScope);
 	pSubExp[iSubIndex].result = buildInFunc.doFunction(cFuncName, fArgs, iArgsNum);
 	return iSubIndex;
 }
 
-int parser::parseFuncArgs(char *p, int &iStartParse, subexp *pSubExp, float *pArgs, int &iArgsNum)
+int parser::parseFuncArgs(char *p, int &iStartParse, subexp *pSubExp, float *pArgs, int &iArgsNum, variable_scope &varScope)
 {
 	iStartParse++;
 	int iSubIndex = floatToInt(parseDigit(p,iStartParse,true));
@@ -331,11 +332,11 @@ int parser::parseFuncArgs(char *p, int &iStartParse, subexp *pSubExp, float *pAr
 		}
         else if (isChar(pSubExp[iSubIndex].exp[i]))
         {
-            pArgs[iArgsNum] = pSubExp[parseBuildInFunc(pSubExp[iSubIndex].exp, i, pSubExp, true)].result;
+            pArgs[iArgsNum] = pSubExp[parseBuildInFunc(pSubExp[iSubIndex].exp, i, pSubExp, varScope, true)].result;
         }
 		else if (pSubExp[iSubIndex].exp[i]=='$')
 		{
-			pArgs[iArgsNum] = pSubExp[parseSubExp(pSubExp[iSubIndex].exp, i, pSubExp, true)].result;
+			pArgs[iArgsNum] = pSubExp[parseSubExp(pSubExp[iSubIndex].exp, i, pSubExp, varScope, true)].result;
 		}
 	}
 	iArgsNum += 1;
@@ -510,7 +511,7 @@ int variable_scope::isExistedVar(char *pVarName)
 	for (int i; i < iVarNum; i++ )
 	{
 		if (strFunc.isSameStr(pVarName, vScope[i].getName())) return i;
-	}
+	};
 
 	return -1;
 }

@@ -1,14 +1,13 @@
 
-#include <iostream>
-
 
 #ifndef C_CALCULATOR_CALC_H
 #define C_CALCULATOR_CALC_H
 
+#include <iostream>
+#include "variable_scope.h"
 
 const int SZ_RAW_STRING = 80;
 const int SZ_GLOBAL_SIZE = 20;
-const int VARIABLE_SCOPE_SIZE = 100;
 extern int LAST_ERROR;
 
 
@@ -59,10 +58,10 @@ public:
 class parser{
 public:
 	float parseDigit(char *p, int &iStartParse, bool bReturnParseIndex = false, bool bIsNegative=false);
-	int parseBuildInFunc(char *p, int &iStartParse, subexp *pSubExp, bool bReturnParseIndex = false);
+	int parseBuildInFunc(char *p, int &iStartParse, subexp *pSubExp, variable_scope &varScope, bool bReturnParseIndex = false);
 	// Think about change of the bReturnParseIndex ( maybe remove it and just always true?)
-	int parseSubExp(char *p, int &iStartParse, subexp *pSubExp ,bool bReturnParseIndex = false);
-	int parseFuncArgs(char *p, int &iStartParse, subexp *pSubExp, float *pArgs, int &iArgsNum);
+	int parseSubExp(char *p, int &iStartParse, subexp *pSubExp , variable_scope &varScope, bool bReturnParseIndex = false);
+	int parseFuncArgs(char *p, int &iStartParse, subexp *pSubExp, float *pArgs, int &iArgsNum ,variable_scope &varScope);
 	int parseVariable(char *p, int &iStartParse, variable_scope &varScope);
 	
 };
@@ -107,13 +106,6 @@ public:
 	float getValue() { return *value; };
 };
 
-class variable_scope {
-public:
-	variable vScope[VARIABLE_SCOPE_SIZE];
-	int iVarNum = 0;
-	int isExistedVar(char *pVarName);
-	// !Do here increment method
-};
 
 int getParent(subexp *pSubExp, int iChildInd);
 int floatToChar(float fDigit, char *pCharDigit, const int iDigitSize=8);
