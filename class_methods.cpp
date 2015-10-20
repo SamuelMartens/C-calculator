@@ -82,30 +82,39 @@ void raw_string::splitOnSubExp(subexp *pSubExp)
 
     for (int i = 0, k = 0, iDelta = 0, iIndex = 0; cRawString[i]; i++){
         iIndex = i - iDelta;
-        switch (cRawString[i])
-        {
-            case '(':
-                pSubExp[k].exp[iIndex] = '$';
-                iCurLevel++;
-                iDelta = i + 1;
-                iPrevK = k;
-                k = iLastPr;
-                iLastPr++;
-                k++;
-                pSubExp[k].level = iCurLevel;
-                floatToChar((float)k, cCharDigit);
-                strFunc.concatStr(pSubExp[iPrevK].exp, cCharDigit);
-                break;
-            case ')':
-                pSubExp[k].exp[iIndex] = '\0';
-                k = (getParent(pSubExp, k) != -1) ? getParent(pSubExp, k) : 0;
-                // We increase iDelta on 2 because we need to think NEXT iteration and not count '\0' symbol
-                iDelta = i + 2 - strFunc.getStrLen(pSubExp[k].exp);
-                iCurLevel--;
-                break;
-            default:
-                pSubExp[k].exp[iIndex] = cRawString[i];
-        }
+		if (cRawString[i] == '=' && k == 0)
+		{
+			pSubExp[0].exp[i+1] = '$';
+			floatToChar((float)k, cCharDigit);
+			strFunc.concatStr(pSubExp[0].exp, cCharDigit);
+			k+=1;
+		}
+		else{
+        	switch (cRawString[i])
+        	{
+            	case '(':
+                	pSubExp[k].exp[iIndex] = '$';
+                	iCurLevel++;
+                	iDelta = i + 1;
+                	iPrevK = k;
+                	k = iLastPr;
+                	iLastPr++;
+                	k++;
+                	pSubExp[k].level = iCurLevel;
+                	floatToChar((float)k, cCharDigit);
+                	strFunc.concatStr(pSubExp[iPrevK].exp, cCharDigit);
+                	break;
+            	case ')':
+                	pSubExp[k].exp[iIndex] = '\0';
+                	k = (getParent(pSubExp, k) != -1) ? getParent(pSubExp, k) : 0;
+                	// We increase iDelta on 2 because we need to think NEXT iteration and not count '\0' symbol
+                	iDelta = i + 2 - strFunc.getStrLen(pSubExp[k].exp);
+                	iCurLevel--;
+                	break;
+            	default:
+            	    pSubExp[k].exp[iIndex] = cRawString[i];
+        	}
+		}
     }
 
 	//cout << iLastPr << " last \n";
@@ -141,6 +150,7 @@ int raw_materials::getTokens(char *p, subexp *pSubExp, variable_scope &varScope 
     int iStartNum = -1, iEndNum = 0, iOperandsPos = 0, iOperationsPos = 0;
     char cSymbols[] = "*/+-", cDigits[] = "0123456789", cSpecialSymbols[] = ".$,";
     parser parParser;
+	string_func stringFunc;
 
     for (int i = 0; p[i]; i++) {
 
@@ -194,6 +204,10 @@ int raw_materials::getTokens(char *p, subexp *pSubExp, variable_scope &varScope 
 			*/
 			// !Here we become aware, whether it variable set or variable use
 			int iCurVarIndex = parParser.parseVariable(p, i, varScope);
+			if (iOperandsPos == 0 && p[i+1] && p[i+1] == '=' && stringFunc.isSameStr(p, pSubExp[0].exp))
+			{
+
+			}
 				
 		}
         else {
