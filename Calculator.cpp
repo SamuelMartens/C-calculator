@@ -32,13 +32,14 @@ int main()
 		if (strFunc.isSameStr(rawString.cRawString, "exit()")) break;
 
 		rawString.removeWhitesp();
-		LAST_ERROR = rawString.validateAll();
+		// LAST_ERROR = rawString.validateAll();
 		if (LAST_ERROR != 0) {
 			cout << "Syntax error \n";
 		//	fgets(rawString.cRawString, SZ_RAW_STRING, stdin);
 			return 1;
 		}
 		rawString.splitOnSubExp(suSubExp);
+		fgets(rawString.cRawString, SZ_RAW_STRING, stdin);
 		return 0;
 		LAST_ERROR = rawMat.getTokens(suSubExp[0].exp, suSubExp, varScope);
 		if (LAST_ERROR != 0) {

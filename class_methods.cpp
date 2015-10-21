@@ -83,38 +83,36 @@ void raw_string::splitOnSubExp(subexp *pSubExp)
 
     for (int i = 0, k = 0, iDelta = 0, iIndex = 0; cRawString[i]; i++){
         iIndex = i - iDelta;
-		if (cRawString[i] == '=' && k == 0)
+		if (cRawString[i] == '(' || (cRawString[i] == '=' && k == 0))
 		{
-			pSubExp[0].exp[i+1] = '$';
+			
+			if (cRawString[i] == '=')
+			{
+				pSubExp[k].exp[iIndex+1] = '$';
+			}
+			else
+				pSubExp[k].exp[iIndex] = '$';
+			iCurLevel++;
+			iDelta = i + 1;
+			iPrevK = k;
+			k = iLastPr;
+			iLastPr++;
+			k++;
+			pSubExp[k].level = iCurLevel;
 			floatToChar((float)k, cCharDigit);
-			strFunc.concatStr(pSubExp[0].exp, cCharDigit);
-			k+=1;
+			strFunc.concatStr(pSubExp[iPrevK].exp, cCharDigit);
 		}
-		else{
-        	switch (cRawString[i])
-        	{
-            	case '(':
-                	pSubExp[k].exp[iIndex] = '$';
-                	iCurLevel++;
-                	iDelta = i + 1;
-                	iPrevK = k;
-                	k = iLastPr;
-                	iLastPr++;
-                	k++;
-                	pSubExp[k].level = iCurLevel;
-                	floatToChar((float)k, cCharDigit);
-                	strFunc.concatStr(pSubExp[iPrevK].exp, cCharDigit);
-                	break;
-            	case ')':
-                	pSubExp[k].exp[iIndex] = '\0';
-                	k = (getParent(pSubExp, k) != -1) ? getParent(pSubExp, k) : 0;
-                	// We increase iDelta on 2 because we need to think NEXT iteration and not count '\0' symbol
-                	iDelta = i + 2 - strFunc.getStrLen(pSubExp[k].exp);
-                	iCurLevel--;
-                	break;
-            	default:
-            	    pSubExp[k].exp[iIndex] = cRawString[i];
-        	}
+		else if (cRawString[i] == ')')
+		{
+            pSubExp[k].exp[iIndex] = '\0';
+            k = (getParent(pSubExp, k) != -1) ? getParent(pSubExp, k) : 0;
+            // We increase iDelta on 2 because we need to think NEXT iteration and not count '\0' symbol
+            iDelta = i + 2 - strFunc.getStrLen(pSubExp[k].exp);
+            iCurLevel--;
+		}
+		else
+		{
+			pSubExp[k].exp[iIndex] = cRawString[i];
 		}
     }
 
@@ -508,7 +506,7 @@ int variable_scope::isExistedVar(char *pVarName)
 {
 	string_func strFunc;
 	
-	for (int i; i < iVarNum; i++ )
+	for (int i=0; i < iVarNum; i++ )
 	{
 		if (strFunc.isSameStr(pVarName, vScope[i].getName())) return i;
 	};
