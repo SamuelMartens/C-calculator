@@ -10,6 +10,7 @@ const int SZ_RAW_STRING = 80;
 const int SZ_GLOBAL_SIZE = 20;
 extern int LAST_ERROR;
 
+enum statment_type { Equation, Setter };
 
 class opr {
 public:
@@ -28,6 +29,8 @@ public:
     char exp[SZ_RAW_STRING]="\0";
     int level = 0;
     float result;
+
+	statment_type getStatmentType();
 };
 
 class raw_string{
@@ -68,9 +71,9 @@ public:
 
 class build_in_func {
 	// !Dont forget about zero symbol when correct size
-	char cFuncNames[3][6] = { "abs", "power" };
+	char cFuncNames[3][6] = { "abs", "power","show" };
 	// It is number of function args. Must go in the same order as names
-	const int iFuncArgsNum[2] = { 1, 2 };
+	const int iFuncArgsNum[3] = { 1, 2, 1 };
 public:
 	// Staff functions
 	int chooseFunc(char *p);
@@ -78,6 +81,7 @@ public:
 	// Allowed functions
 	float abs(float fNumber);
 	float power(float fNumber, int iPowerNum);
+	void show(variable varV);
 };
 
 

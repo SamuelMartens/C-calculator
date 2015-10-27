@@ -83,15 +83,9 @@ void raw_string::splitOnSubExp(subexp *pSubExp)
 
     for (int i = 0, k = 0, iDelta = 0, iIndex = 0; cRawString[i]; i++){
         iIndex = i - iDelta;
-		if (cRawString[i] == '(' || (cRawString[i] == '=' && k == 0))
+		if (cRawString[i] == '(')
 		{
-			
-			if (cRawString[i] == '=')
-			{
-				pSubExp[k].exp[iIndex+1] = '$';
-			}
-			else
-				pSubExp[k].exp[iIndex] = '$';
+			pSubExp[k].exp[iIndex] = '$';
 			iCurLevel++;
 			iDelta = i + 1;
 			iPrevK = k;
@@ -109,6 +103,18 @@ void raw_string::splitOnSubExp(subexp *pSubExp)
             // We increase iDelta on 2 because we need to think NEXT iteration and not count '\0' symbol
             iDelta = i + 2 - strFunc.getStrLen(pSubExp[k].exp);
             iCurLevel--;
+		}
+		else if (cRawString[i] == '=')
+		{
+			// We suggest that in this case 'k' is always equal to 0 (it is very important in this 'if' statment )
+			iCurLevel++;
+			iDelta = i + 1;
+			iLastPr++;
+			k++;
+			pSubExp[k].level = iCurLevel;
+			floatToChar((float)k, cCharDigit);
+			strFunc.concatStr(pSubExp[k - 1].exp, "=$");
+			strFunc.concatStr(pSubExp[k - 1].exp, cCharDigit);
 		}
 		else
 		{
@@ -150,6 +156,7 @@ int raw_materials::getTokens(char *p, subexp *pSubExp, variable_scope &varScope 
     char cSymbols[] = "*/+-", cDigits[] = "0123456789", cSpecialSymbols[] = ".$,";
     parser parParser;
 	string_func stringFunc;
+	statment_type statmentType = Equation;
 
     for (int i = 0; p[i]; i++) {
 
@@ -205,7 +212,9 @@ int raw_materials::getTokens(char *p, subexp *pSubExp, variable_scope &varScope 
 			int iCurVarIndex = parParser.parseVariable(p, i, varScope);
 			if (iOperandsPos == 0 && p[i+1] && p[i+1] == '=' && stringFunc.isSameStr(p, pSubExp[0].exp))
 			{
-
+				i += 2;
+				statmentType = Setter;
+				varScope.vScope[iCurVarIndex].setValue(pSubExp[parParser.parseSubExp(p, i, pSubExp, varScope, true)].result);
 			}
 				
 		}
@@ -213,7 +222,7 @@ int raw_materials::getTokens(char *p, subexp *pSubExp, variable_scope &varScope 
             return 1;
         }
     }
-    if (iCountDigits - iCountSymbols != 1) return 1;
+    if (iCountDigits - iCountSymbols != 1 && statmentType == Equation) return 1;
 	// Check if there any errors during function work
 	if (LAST_ERROR != 0) return 1;
     return 0;
@@ -427,6 +436,11 @@ float build_in_func::doFunction(char *pFuncName, float *pArgs, int iArgsNum)
 	return 0;
 }
 
+void build_in_func::show(variable varV)
+{
+	cout << varV.getValue();
+}
+
 // STRING_FUNC
 int string_func::concatStr(char *pOriginS, char *pAdditStr)
 {
@@ -512,4 +526,15 @@ int variable_scope::isExistedVar(char *pVarName)
 	};
 
 	return -1;
+}
+
+
+// SUBEXP
+statment_type subexp::getStatmentType()
+{
+	for (int i = 0; exp[i]; i++)
+	{
+		if (exp[i] == '=') return Setter;
+	}
+	return Equation;
 }

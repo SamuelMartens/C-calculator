@@ -15,14 +15,14 @@ int main()
 {
 	variable_scope varScope;
 
-	for (;;){
+	for (;;)
+	{
 
 		raw_string rawString;
 		raw_materials rawMat;
 		string_func strFunc;
 		float fResult;
 		subexp suSubExp[SZ_GLOBAL_SIZE];
-
 
 		cout << "<< ";
 		fgets(rawString.cRawString, SZ_RAW_STRING, stdin);
@@ -39,16 +39,19 @@ int main()
 			return 1;
 		}
 		rawString.splitOnSubExp(suSubExp);
-		fgets(rawString.cRawString, SZ_RAW_STRING, stdin);
-		return 0;
+		// fgets(rawString.cRawString, SZ_RAW_STRING, stdin);
+		// return 0;
 		LAST_ERROR = rawMat.getTokens(suSubExp[0].exp, suSubExp, varScope);
 		if (LAST_ERROR != 0) {
 			cout << "Syntax error in token \n";
 	//		fgets(rawString.cRawString, SZ_RAW_STRING, stdin);
 			return 1;
 		}
-		fResult = rawMat.getResult();
-		cout << "<< " << fResult << "\n";
+		if (suSubExp[0].getStatmentType() == Equation)
+		{
+			fResult = rawMat.getResult();
+			cout << "<< " << fResult << "\n";
+		}
 	//	fgets(rawString.cRawString, SZ_RAW_STRING, stdin);
 	}
 
