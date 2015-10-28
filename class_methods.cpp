@@ -323,24 +323,34 @@ int parser::parseFuncArgs(char *p, int &iStartParse, subexp *pSubExp, float *pAr
     // Implement unary minus here
 	for (int i = 0; pSubExp[iSubIndex].exp[i]; i++)
 	{
+		// Parse digit
 		if (isDigit(pSubExp[iSubIndex].exp[i]))
         {
 			pArgs[iArgsNum] = parseDigit(pSubExp[iSubIndex].exp, i, true);
 		}
+		// Parse unary minus
         else if (pSubExp[iSubIndex].exp[i]=='-' && pSubExp[iSubIndex].exp[i+1] && isDigit(pSubExp[iSubIndex].exp[i+1]))
         {
             i++;
             pArgs[iArgsNum] = parseDigit(pSubExp[iSubIndex].exp, i, true, true);
         }
+		// Parse next arg
 		else if (pSubExp[iSubIndex].exp[i]==',')
 		{
 			iArgsNum += 1;
 			continue;
 		}
-        else if (isChar(pSubExp[iSubIndex].exp[i]))
+		// Parse build in func
+        else if (isChar(pSubExp[iSubIndex].exp[i]) && isFunc(pSubExp[iSubIndex].exp, i))
         {
             pArgs[iArgsNum] = pSubExp[parseBuildInFunc(pSubExp[iSubIndex].exp, i, pSubExp, varScope, true)].result;
         }
+		// Parse variable
+		else if (isChar(pSubExp[iSubIndex].exp[i]))
+		{
+			pArgs[iArgsNum] = varScope[parseVariable(pSubExp[iSubIndex].exp, i, varScope)].getValue();
+		}
+		// Parse sub string
 		else if (pSubExp[iSubIndex].exp[i]=='$')
 		{
 			pArgs[iArgsNum] = pSubExp[parseSubExp(pSubExp[iSubIndex].exp, i, pSubExp, varScope, true)].result;
@@ -427,6 +437,13 @@ float build_in_func::doFunction(char *pFuncName, float *pArgs, int iArgsNum)
 				return 0;
 			}
 		    return power(pArgs[0], floatToInt(pArgs[1]));
+		case 2:
+			if (iFuncArgsNum[iChosenIndex] != iArgsNum){
+				LAST_ERROR = 1;
+				return 0;
+			}
+			show(pArgs[0]);
+			return 0;
         default:
             // Case when we not found any build in function with such name
             LAST_ERROR = 1;
@@ -436,9 +453,9 @@ float build_in_func::doFunction(char *pFuncName, float *pArgs, int iArgsNum)
 	return 0;
 }
 
-void build_in_func::show(variable varV)
+void build_in_func::show(float var)
 {
-	cout << varV.getValue();
+	cout << var;
 }
 
 // STRING_FUNC

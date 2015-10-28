@@ -81,7 +81,7 @@ public:
 	// Allowed functions
 	float abs(float fNumber);
 	float power(float fNumber, int iPowerNum);
-	void show(variable varV);
+	void show(float var);
 };
 
 
