@@ -198,23 +198,15 @@ int raw_materials::getTokens(char *p, subexp *pSubExp, variable_scope &varScope 
 		// Parse variable 
 		else if (isChar(p[i]))
 		{
-			/*
-			!What I set varible:
-			1) Check valedation:
-			1.1) Check that the first token is variable
-			1.2) Check that this goes right after first token
-			2) Variable set:
-			2.1) Check if variable with such name exist
-			2.1.1) If exist set new value
-			2.1.2) If not exist set, create new one with new value
-			*/
 			// !Here we become aware, whether it variable set or variable use
 			int iCurVarIndex = parParser.parseVariable(p, i, varScope);
-			if (iOperandsPos == 0 && p[i+1] && p[i+1] == '=' && stringFunc.isSameStr(p, pSubExp[0].exp))
+			if (iOperandsPos == 0 && p[i] && p[i] == '=' && stringFunc.isSameStr(p, pSubExp[0].exp))
 			{
-				i += 2;
+				i++;
 				statmentType = Setter;
 				varScope.vScope[iCurVarIndex].setValue(pSubExp[parParser.parseSubExp(p, i, pSubExp, varScope, true)].result);
+				cout << varScope.vScope[iCurVarIndex].getValue() << "\n";
+				cout << varScope.vScope[iCurVarIndex].getName() << "\n";
 			}
 				
 		}
@@ -348,7 +340,7 @@ int parser::parseFuncArgs(char *p, int &iStartParse, subexp *pSubExp, float *pAr
 		// Parse variable
 		else if (isChar(pSubExp[iSubIndex].exp[i]))
 		{
-			pArgs[iArgsNum] = varScope[parseVariable(pSubExp[iSubIndex].exp, i, varScope)].getValue();
+			pArgs[iArgsNum] = varScope.vScope[parseVariable(pSubExp[iSubIndex].exp, i, varScope)].getValue();
 		}
 		// Parse sub string
 		else if (pSubExp[iSubIndex].exp[i]=='$')
@@ -379,10 +371,11 @@ int parser::parseVariable(char *p, int &iStartParse, variable_scope &varScope)
 	}
 	else
 	{
-		varScope.iVarNum += 1;
 		varScope.vScope[varScope.iVarNum].setName(cVarName);
+		varScope.iVarNum++;
 	}
-	return varScope.iVarNum;
+	// Return "iVarNum-1" becouse index is always less than len on 1 
+	return varScope.iVarNum-1;
 }
 
 // BUILD_IN_FUNC
@@ -455,7 +448,7 @@ float build_in_func::doFunction(char *pFuncName, float *pArgs, int iArgsNum)
 
 void build_in_func::show(float var)
 {
-	cout << var;
+	cout << var <<"\n";
 }
 
 // STRING_FUNC
