@@ -10,7 +10,7 @@ const int SZ_RAW_STRING = 80;
 const int SZ_GLOBAL_SIZE = 20;
 extern int LAST_ERROR;
 
-enum statment_type { Equation, Setter };
+enum statment_type { Equation, Setter, VoidFunc };
 
 class opr {
 public:
@@ -66,7 +66,7 @@ public:
 	int parseSubExp(char *p, int &iStartParse, subexp *pSubExp , variable_scope &varScope, bool bReturnParseIndex = false);
 	int parseFuncArgs(char *p, int &iStartParse, subexp *pSubExp, float *pArgs, int &iArgsNum ,variable_scope &varScope);
 	int parseVariable(char *p, int &iStartParse, variable_scope &varScope);
-	
+	void parseFuncName(char *p, char *cFuncName, int &iStartParse, bool bReturnParseIndex = false);
 };
 
 class build_in_func {
@@ -93,7 +93,7 @@ float charToFloat(char *p, int iStartNum, int iEndNum);
 char isInArray(char cSymbol,char *pContainer, int iStart = -1, int iEnd = -1);
 bool isChar(char cSymbol);
 bool isDigit(char cSymbol);
-bool isFunc(char *p, int &iStartParse);
+int isFunc(char *p, int &iStartParse);
 
 using namespace std;
 

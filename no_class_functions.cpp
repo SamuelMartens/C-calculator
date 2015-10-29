@@ -140,10 +140,11 @@ int floatToInt(float fNumber)
 	return (int)fNumber;
 }
 
-bool isFunc(char *p, int &iStartParse)
+int isFunc(char *p, int &iStartParse)
 {
 	int i;
 	for (i = iStartParse; p[i] && isChar(p[i]); i++);
-	if (p[i] && p[i] == '$') return true;
-	return false;
+	// Add 1 becouse we must think about zero symbol in the end.
+	if (p[i] && p[i] == '$') return i+1;
+	return 0;
 }

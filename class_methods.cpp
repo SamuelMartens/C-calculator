@@ -297,12 +297,8 @@ int parser::parseBuildInFunc(char *p, int &iStartParse, subexp *pSubExp, variabl
 	float fArgs[iMaxArgsNum];
 	char cFuncName[iMaxFuncSize];
 	build_in_func buildInFunc;
-	
-	for (;p[iStartParse] && isChar(p[iStartParse]); iStartParse++, k++) 
-	{
-		cFuncName[k] = p[iStartParse];
-	};
-	cFuncName[k] = '\0';
+
+	parseFuncName(p, cFuncName, iStartParse, true);
 	iSubIndex = parseFuncArgs(p, iStartParse, pSubExp, fArgs, iArgsNum, varScope);
 	pSubExp[iSubIndex].result = buildInFunc.doFunction(cFuncName, fArgs, iArgsNum);
 	return iSubIndex;
@@ -377,6 +373,18 @@ int parser::parseVariable(char *p, int &iStartParse, variable_scope &varScope)
 	// Return "iVarNum-1" becouse index is always less than len on 1 
 	return varScope.iVarNum-1;
 }
+
+void parser::parseFuncName(char *p, char *cFuncName, int &iStartParse, bool bReturnParseIndex)
+{
+	int i, k;
+	for (i = iStartParse, k = 0; p[i] && isChar(p[i]); i++, k++)
+	{
+		cFuncName[k] = p[i];
+	}
+	cFuncName[k] = '\0';
+	if (bReturnParseIndex) iStartParse = i;
+}
+
 
 // BUILD_IN_FUNC
 float build_in_func::abs(float fNumber)
@@ -542,9 +550,30 @@ int variable_scope::isExistedVar(char *pVarName)
 // SUBEXP
 statment_type subexp::getStatmentType()
 {
+	build_in_func buildInFunc;
+	char *pFuncName;
+	parser parParser;
+	int iFuncNameLen;
+
 	for (int i = 0; exp[i]; i++)
 	{
 		if (exp[i] == '=') return Setter;
+		else if (isChar(exp[i]))
+		{
+			iFuncNameLen = isFunc(exp, i);
+			if (iFuncNameLen)
+			{
+				pFuncName = new char[iFuncNameLen];
+				parParser.parseFuncName(exp, pFuncName, i);
+				if (buildInFunc.chooseFunc(pFuncName) == buildInFunc.chooseFunc("show"))
+				{
+					delete pFuncName;
+					return VoidFunc;
+				}
+				delete pFuncName;
+			}
+		}
 	}
+
 	return Equation;
 }
