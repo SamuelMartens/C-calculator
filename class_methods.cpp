@@ -205,8 +205,18 @@ int raw_materials::getTokens(char *p, subexp *pSubExp, variable_scope &varScope 
 				i++;
 				statmentType = Setter;
 				varScope.vScope[iCurVarIndex].setValue(pSubExp[parParser.parseSubExp(p, i, pSubExp, varScope, true)].result);
-				cout << varScope.vScope[iCurVarIndex].getValue() << "\n";
-				cout << varScope.vScope[iCurVarIndex].getName() << "\n";
+			}
+			else if (varScope.vScope[iCurVarIndex].isInit())
+			{
+				// As after parse our "i" is higher than it previous was on 1.
+				i--;
+				fOperands[iOperandsPos] = varScope.vScope[iCurVarIndex].getValue();
+				iCountDigits++;
+				iOperandsPos++;
+			}
+			else
+			{
+				LAST_ERROR = 1;
 			}
 				
 		}
@@ -532,6 +542,13 @@ variable::variable(const variable &obj)
 	initialized = new bool(*obj.initialized);
 }
 
+void variable::setName(char *pName)
+{
+	string_func strFunc;
+	name = new char[strFunc.getStrLen(pName)];
+	strFunc.copyStr(name, pName);
+	*initialized = true;
+}
 
 // VARIABLE_SCOPE
 int variable_scope::isExistedVar(char *pVarName)

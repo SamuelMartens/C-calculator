@@ -8,16 +8,17 @@ class variable {
 	float *value;
 	bool *initialized;
 public:
-	variable() { name = new char; value = new float; initialized = new bool(false); };
+	variable() { value = new float; initialized = new bool(false); };
 	variable(char *pName);
 	variable(char *pName, float fValue);
-	~variable() { delete name; delete value; delete initialized; };
+	~variable() { if(*initialized) delete [] name; delete value; delete initialized; };
 	variable(const variable &obj);
-	void setValue(float fValue) { *value = fValue; *initialized = true; };
-	void setName(char *pName) { string_func strFunc; strFunc.copyStr(name, pName); };
+	void setValue(float fValue) { *value = fValue; };
+	void setName(char *pName);
 	void setNameValue(char *pName, float fValue) { setName(pName); setValue(fValue); };
 	char *getName() { return name; };
 	float getValue() { return *value; };
+	bool isInit() { return *initialized;};
 };
 
 
