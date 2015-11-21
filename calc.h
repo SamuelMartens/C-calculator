@@ -11,6 +11,17 @@ const int SZ_GLOBAL_SIZE = 20;
 extern int LAST_ERROR;
 
 enum statment_type { Equation, Setter, VoidFunc };
+enum error_type 
+{
+	NotAllowedSybolError,
+	ParentlessError,
+	SyntaxError,
+	VariableInitError,
+	BuildInFuncExistanceError,
+	UndefinedError,
+	// Use it if the stament is without err and need to return something
+	StatmentIsOk
+};
 
 class opr {
 public:
@@ -43,6 +54,7 @@ public:
 	int validateAll();
     int validateParentheses();
 	int validateSpecialSymbols();
+	void showError(error_type Err);
 };
 
 class raw_materials{

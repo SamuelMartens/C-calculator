@@ -130,6 +130,35 @@ void raw_string::splitOnSubExp(subexp *pSubExp)
 	}
 }
 
+void raw_string::showError(error_type Err)
+{
+	// ! When will work with file try to define line number 
+	switch (Err)
+	{
+	case NotAllowedSybolError:
+		cout << "<<" << Err << ": not allowed symbol is use in statment. \n";
+		break;
+	case ParentlessError:
+		cout << "<<" << Err << ": worng parentless number in statment. \n";
+		break;
+	case SyntaxError:
+		cout << "<<" << Err << ": syntax error in statment. \n";
+		break;
+	case VariableInitError:
+		cout << "<<" << Err << ": you use not initialized variable. \n";
+		break;
+	case BuildInFuncExistanceError:
+		cout << "<<" << Err << ": you try use not existed build-in function. \n";
+		break;
+	case StatmentIsOk:
+		break;
+	default:
+		cout << "<<" << Err << ": it is error  in your statment but we cant identify it. \n";
+		break;
+	}
+}
+
+
 // OPR
 float opr::doOperation(float fOperandL, float fOperandR)
 {
