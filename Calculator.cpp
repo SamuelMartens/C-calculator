@@ -3,8 +3,6 @@
 #include <cstdio>
 #include "calc.h"
 
-int LAST_ERROR = 0;
-
 
 /* sizeof(int k) return 16 
 1) Do validation of Build in Fucntion (its must ends with "()" )
@@ -30,25 +28,22 @@ int main()
 		rawString.cRawString[strFunc.getStrLen(rawString.cRawString)-2] = '\0';
 
 		if (strFunc.isSameStr(rawString.cRawString, "exit()")) break;
-
 		rawString.removeWhitesp();
-		LAST_ERROR = rawString.validateAll();
-		if (LAST_ERROR != 0) {
-			cout << "Syntax error \n";
-			return 1;
-		}
-		rawString.splitOnSubExp(suSubExp);
-		LAST_ERROR = rawMat.getTokens(suSubExp[0].exp, suSubExp, varScope);
-		if (LAST_ERROR != 0) {
-			cout << "Syntax error in token \n";
-			return 1;
-		}
-		if (suSubExp[0].getStatmentType() == Equation)
+		try
 		{
-			fResult = rawMat.getResult();
-			cout << "<< " << fResult << "\n";
+			rawString.validateAll();
+			rawString.splitOnSubExp(suSubExp);
+			rawMat.getTokens(suSubExp[0].exp, suSubExp, varScope);
+			if (suSubExp[0].getStatmentType() == Equation)
+			{
+				fResult = rawMat.getResult();
+				cout << "<< " << fResult << "\n";
+			}
 		}
-	//	fgets(rawString.cRawString, SZ_RAW_STRING, stdin);
+		catch (error_type Err) 
+		{
+			rawString.showError(Err);
+		}
 	}
 
 	return 0;

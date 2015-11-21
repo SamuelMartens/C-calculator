@@ -20,15 +20,15 @@ void raw_string::removeWhitesp()
 }
 
 
-int raw_string::validateAll()
+void raw_string::validateAll()
 {
 	// Run all validators of this class
-	if (!(validateParentheses()) && !(validateSpecialSymbols())) return 0;
-	return 1;
+	validateSpecialSymbols();
+	validateParentheses();
 }
 
 
-int raw_string::validateParentheses()
+void raw_string::validateParentheses()
 {
     // Check parentless and also check operation symbol before open parentheses
     // and digits before closed parentheses
@@ -42,14 +42,24 @@ int raw_string::validateParentheses()
         {
             case '(':
                 iOpened += 1;
-                if (i!=0 && !(isInArray(cRawString[i-1],cBeforeOpen)) && !(isChar(cRawString[i-1])) && !(isInArray(cRawString[i-1],cSymbols))) return 1;
-				if (cRawString[i + 1] && !(isChar(cRawString[i+1])) && !(isInArray(cRawString[i + 1], cDigits)) && !(isInArray(cRawString[i + 1], cAfterOpen))) return 1;
+                if (i!=0 &&
+					!(isInArray(cRawString[i-1],cBeforeOpen)) &&
+					!(isChar(cRawString[i-1])) &&
+					!(isInArray(cRawString[i-1],cSymbols))) throw PreAfterParentlessError;
+				if (cRawString[i + 1] &&
+					!(isChar(cRawString[i+1])) &&
+					!(isInArray(cRawString[i + 1], cDigits)) &&
+					!(isInArray(cRawString[i + 1], cAfterOpen))) throw PreAfterParentlessError;
                 break;
             case ')':
                 iClosed += 1;
-                if (i!=0 && cRawString[i-1]!=')' && !(isInArray(cRawString[i-1],cDigits))){ cout <<"G3"; return 1;};
-				if (cRawString[i + 1] && !(isInArray(cRawString[i + 1], cAfterClose)) && !(isInArray(cRawString[i + 1], cSymbols))) return 1;
-                if (iClosed>iOpened) return 1;
+                if (i!=0 && cRawString[i-1]!=')' &&
+					!(isChar(cRawString[i - 1])) &&
+					!(isInArray(cRawString[i-1],cDigits))) throw PreAfterParentlessError;
+				if (cRawString[i + 1] &&
+					!(isInArray(cRawString[i + 1], cAfterClose)) &&
+					!(isInArray(cRawString[i + 1], cSymbols))) throw PreAfterParentlessError;
+                if (iClosed>iOpened) throw ParentlessError;
                 break;
             default:
                 continue;
@@ -57,21 +67,18 @@ int raw_string::validateParentheses()
         }
     }
 
-    if (iClosed != iOpened) return 1;
-    return 0;
+    if (iClosed != iOpened) throw ParentlessError;
 }
 
-int raw_string::validateSpecialSymbols()
+void raw_string::validateSpecialSymbols()
 {
 	// Looks that some symbols, should not present in expression
 	char cSpecialSymbols[] = "$";
 
 	for (int i = 0; cRawString[i]; i++)
 	{
-		if (isInArray(cRawString[i], cSpecialSymbols)) return 1;
+		if (isInArray(cRawString[i], cSpecialSymbols)) throw NotAllowedSybolError;
 	};
-
-	return 0;
 }
 
 void raw_string::splitOnSubExp(subexp *pSubExp)
@@ -121,13 +128,6 @@ void raw_string::splitOnSubExp(subexp *pSubExp)
 			pSubExp[k].exp[iIndex] = cRawString[i];
 		}
     }
-
-	//cout << iLastPr << " last \n";
-	// for Debug
-	for (int i = 0; i <= iLastPr; i++)
-	{
-		cout << i << ") " << pSubExp[i].exp << " " << pSubExp[i].level  <<" \n";
-	}
 }
 
 void raw_string::showError(error_type Err)
@@ -136,24 +136,30 @@ void raw_string::showError(error_type Err)
 	switch (Err)
 	{
 	case NotAllowedSybolError:
-		cout << "<<" << Err << ": not allowed symbol is use in statment. \n";
+		cout << "<< Error: not allowed symbol. \n";
 		break;
 	case ParentlessError:
-		cout << "<<" << Err << ": worng parentless number in statment. \n";
+		cout << "<< Error: worng parentless number. \n";
 		break;
 	case SyntaxError:
-		cout << "<<" << Err << ": syntax error in statment. \n";
+		cout << "<< Error: syntax error. \n";
 		break;
 	case VariableInitError:
-		cout << "<<" << Err << ": you use not initialized variable. \n";
+		cout << "<< Error: you use not initialized variable. \n";
 		break;
 	case BuildInFuncExistanceError:
-		cout << "<<" << Err << ": you try use not existed build-in function. \n";
+		cout << "<< Error: you try use not existed build-in function. \n";
 		break;
-	case StatmentIsOk:
+	case PreAfterParentlessError:
+		cout << "<< Error: wrong symbol after or before parentless. \n";
+		break;
+	case ArgsNumError:
+		cout << "<< Error: wrong arguments number for function. \n";
+	case SymbolDuplication:
+		cout << "<< Error: using symbol duplication where it is not allowed. \n";
 		break;
 	default:
-		cout << "<<" << Err << ": it is error  in your statment but we cant identify it. \n";
+		cout << "<< Error: it is error  in your statment but we cant identify it. \n";
 		break;
 	}
 }
@@ -179,7 +185,7 @@ float opr::doOperation(float fOperandL, float fOperandR)
 
 
 // RAW_MATERIALS
-int raw_materials::getTokens(char *p, subexp *pSubExp, variable_scope &varScope )
+void raw_materials::getTokens(char *p, subexp *pSubExp, variable_scope &varScope )
 {
     int iStartNum = -1, iEndNum = 0, iOperandsPos = 0, iOperationsPos = 0;
     char cSymbols[] = "*/+-", cDigits[] = "0123456789", cSpecialSymbols[] = ".$,";
@@ -195,6 +201,7 @@ int raw_materials::getTokens(char *p, subexp *pSubExp, variable_scope &varScope 
             iCountDigits++;
 			iOperandsPos++;
         }
+		// Parse digit with unary minus
         else if(i == 0 && p[i] == '-') {
             i++;
             fOperands[iOperandsPos] = parParser.parseDigit(p,i,true,true);
@@ -211,7 +218,7 @@ int raw_materials::getTokens(char *p, subexp *pSubExp, variable_scope &varScope 
         else if (isInArray(p[i], cSymbols)) {
 
 			// Validate that no dublicated symbols
-			if (i > 0 && isInArray(p[i - 1], cSymbols)) return 1;
+			if (i > 0 && isInArray(p[i - 1], cSymbols)) throw SymbolDuplication;
             opOperations[iOperationsPos].symbol = p[i];
             opOperations[iOperationsPos].left_op = iOperationsPos;
             opOperations[iOperationsPos].right_op = iOperationsPos + 1;
@@ -245,18 +252,15 @@ int raw_materials::getTokens(char *p, subexp *pSubExp, variable_scope &varScope 
 			}
 			else
 			{
-				LAST_ERROR = 1;
+				throw VariableInitError;
 			}
 				
 		}
         else {
-            return 1;
+			throw SyntaxError;
         }
     }
-    if (iCountDigits - iCountSymbols != 1 && statmentType == Equation) return 1;
-	// Check if there any errors during function work
-	if (LAST_ERROR != 0) return 1;
-    return 0;
+    if (iCountDigits - iCountSymbols != 1 && statmentType == Equation) throw SyntaxError;
 }
 
 float raw_materials::getResult()
@@ -375,7 +379,7 @@ int parser::parseFuncArgs(char *p, int &iStartParse, subexp *pSubExp, float *pAr
 		// Parse variable
 		else if (isChar(pSubExp[iSubIndex].exp[i]))
 		{
-			pArgs[iArgsNum] = varScope.vScope[parseVariable(pSubExp[iSubIndex].exp, i, varScope)].getValue();
+			pArgs[iArgsNum] = varScope.vScope[parseVariable(pSubExp[iSubIndex].exp, i, varScope, false)].getValue();
 		}
 		// Parse sub string
 		else if (pSubExp[iSubIndex].exp[i]=='$')
@@ -388,18 +392,19 @@ int parser::parseFuncArgs(char *p, int &iStartParse, subexp *pSubExp, float *pAr
 	return iSubIndex;
 }
 
-int parser::parseVariable(char *p, int &iStartParse, variable_scope &varScope)
+int parser::parseVariable(char *p, int &iStartParse, variable_scope &varScope, bool bReturnParseIndex)
 {
 	const int iMaxVarNameSize = 36;
-	int k = 0;
+	int k = 0 , iParseIndex = iStartParse;
 	char cVarName[iMaxVarNameSize];
 	int iCurVarIndex;
-	for (; p[iStartParse] && isChar(p[iStartParse]);k++, iStartParse++)
+	for (; p[iParseIndex] && isChar(p[iParseIndex]);k++, iParseIndex++)
 	{
-		cVarName[k] = p[iStartParse];
+		cVarName[k] = p[iParseIndex];
 	}
 	cVarName[k] = '\0';
 	iCurVarIndex = varScope.isExistedVar(cVarName);
+	if (bReturnParseIndex) iStartParse = iParseIndex;
 	if ( iCurVarIndex != -1 )
 	{
 		return iCurVarIndex;
@@ -466,36 +471,25 @@ float build_in_func::doFunction(char *pFuncName, float *pArgs, int iArgsNum)
 	switch (iChosenIndex)
 	{
 	    case 0:
-			if (iFuncArgsNum[iChosenIndex] != iArgsNum) {
-				LAST_ERROR = 1;
-				return 0;
-			}
+			if (iFuncArgsNum[iChosenIndex] != iArgsNum) throw ArgsNumError;
 		    return abs(pArgs[0]);
 	    case 1:
-			if (iFuncArgsNum[iChosenIndex] != iArgsNum) {
-				LAST_ERROR = 1;
-				return 0;
-			}
+			if (iFuncArgsNum[iChosenIndex] != iArgsNum) throw ArgsNumError;
 		    return power(pArgs[0], floatToInt(pArgs[1]));
 		case 2:
-			if (iFuncArgsNum[iChosenIndex] != iArgsNum){
-				LAST_ERROR = 1;
-				return 0;
-			}
+			if (iFuncArgsNum[iChosenIndex] != iArgsNum) throw ArgsNumError;
 			show(pArgs[0]);
 			return 0;
         default:
             // Case when we not found any build in function with such name
-            LAST_ERROR = 1;
+			throw BuildInFuncExistanceError;
 		    break;
 	}
-
-	return 0;
 }
 
 void build_in_func::show(float var)
 {
-	cout << var <<"\n";
+	cout << "<< " << var <<"\n";
 }
 
 // STRING_FUNC
@@ -576,8 +570,14 @@ void variable::setName(char *pName)
 	string_func strFunc;
 	name = new char[strFunc.getStrLen(pName)];
 	strFunc.copyStr(name, pName);
-	*initialized = true;
 }
+
+float variable::getValue()
+{
+	if (*initialized == false) throw VariableInitError;
+	return *value;
+}
+
 
 // VARIABLE_SCOPE
 int variable_scope::isExistedVar(char *pVarName)
@@ -591,6 +591,7 @@ int variable_scope::isExistedVar(char *pVarName)
 
 	return -1;
 }
+
 
 
 // SUBEXP

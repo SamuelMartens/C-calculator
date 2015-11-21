@@ -8,7 +8,6 @@
 
 const int SZ_RAW_STRING = 80;
 const int SZ_GLOBAL_SIZE = 20;
-extern int LAST_ERROR;
 
 enum statment_type { Equation, Setter, VoidFunc };
 enum error_type 
@@ -19,8 +18,9 @@ enum error_type
 	VariableInitError,
 	BuildInFuncExistanceError,
 	UndefinedError,
-	// Use it if the stament is without err and need to return something
-	StatmentIsOk
+	PreAfterParentlessError,
+	ArgsNumError,
+	SymbolDuplication
 };
 
 class opr {
@@ -51,9 +51,9 @@ public:
 	raw_string() { cRawString[0] = '\0'; };
     void removeWhitesp();
     void splitOnSubExp(subexp *pSubExp);
-	int validateAll();
-    int validateParentheses();
-	int validateSpecialSymbols();
+	void validateAll();
+    void validateParentheses();
+	void validateSpecialSymbols();
 	void showError(error_type Err);
 };
 
@@ -65,7 +65,7 @@ public:
     opr opOperations[SZ_GLOBAL_SIZE];
 
     raw_materials() {iCountDigits = 0; iCountSymbols = 0;};
-    int getTokens(char *p, subexp *pSubExp, variable_scope &varScope);
+    void getTokens(char *p, subexp *pSubExp, variable_scope &varScope);
     void doOperationGroup(char *pOperationGroup, const int *pOperationGroupLim, int &iProcDigits);
     float getResult();
 };
@@ -77,7 +77,7 @@ public:
 	// Think about change of the bReturnParseIndex ( maybe remove it and just always true?)
 	int parseSubExp(char *p, int &iStartParse, subexp *pSubExp , variable_scope &varScope, bool bReturnParseIndex = false);
 	int parseFuncArgs(char *p, int &iStartParse, subexp *pSubExp, float *pArgs, int &iArgsNum ,variable_scope &varScope);
-	int parseVariable(char *p, int &iStartParse, variable_scope &varScope);
+	int parseVariable(char *p, int &iStartParse, variable_scope &varScope, bool bReturnParseIndex = true);
 	void parseFuncName(char *p, char *cFuncName, int &iStartParse, bool bReturnParseIndex = false);
 };
 

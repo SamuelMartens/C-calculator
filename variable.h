@@ -13,11 +13,11 @@ public:
 	variable(char *pName, float fValue);
 	~variable() { if(*initialized) delete [] name; delete value; delete initialized; };
 	variable(const variable &obj);
-	void setValue(float fValue) { *value = fValue; };
+	void setValue(float fValue) { *value = fValue; *initialized = true;};
 	void setName(char *pName);
 	void setNameValue(char *pName, float fValue) { setName(pName); setValue(fValue); };
 	char *getName() { return name; };
-	float getValue() { return *value; };
+	float getValue();
 	bool isInit() { return *initialized;};
 };
 
