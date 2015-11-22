@@ -155,6 +155,7 @@ void raw_string::showError(error_type Err)
 		break;
 	case ArgsNumError:
 		cout << "<< Error: wrong arguments number for function. \n";
+		break;
 	case SymbolDuplication:
 		cout << "<< Error: using symbol duplication where it is not allowed. \n";
 		break;

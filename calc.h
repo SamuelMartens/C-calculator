@@ -4,6 +4,7 @@
 #define C_CALCULATOR_CALC_H
 
 #include <iostream>
+#include <fstream>
 #include "variable_scope.h"
 
 const int SZ_RAW_STRING = 80;
@@ -83,9 +84,9 @@ public:
 
 class build_in_func {
 	// !Dont forget about zero symbol when correct size
-	char cFuncNames[3][6] = { "abs", "power","show" };
+	char cFuncNames[4][15] = { "abs", "power", "show", "runfromfile"};
 	// It is number of function args. Must go in the same order as names
-	const int iFuncArgsNum[3] = { 1, 2, 1 };
+	const int iFuncArgsNum[4] = { 1, 2, 1, 1};
 public:
 	// Staff functions
 	int chooseFunc(char *p);
